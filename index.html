@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Inglês Sem Frescura</title>
 <meta name="description" content="Aprenda inglês do zero conversando com uma professora que não tem paciência pra você.">
-<meta name="theme-color" content="#14110f">
+<meta name="theme-color" content="#f6f3ee">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,15 +13,25 @@
 <meta name="mobile-web-app-capable" content="yes">
 <style>
 :root{
+  --bg:#f6f3ee;--card:#fff;--card2:#ece7df;--line:#e1dacf;
+  --txt:#1d1a17;--mut:#6b635a;--acc:#d9441f;--acc2:#9a5b00;
+  --ok:#1b8a4b;--okt:#fff;--bad:#d1334a;--okbg:#e3f5ea;--badbg:#fde8eb;
+  --ub:#fbe9e2;--ubl:#f0c9ba;--fb:#e6eefb;--fbl:#c5d6f2;
+  --hero:linear-gradient(135deg,#ffe9df,#fff);--tab:#fffdfa;--r:16px;
+}
+:root[data-theme="dark"]{
   --bg:#14110f;--card:#1f1a17;--card2:#2a231f;--line:#3a312b;
   --txt:#f5ede6;--mut:#a89b90;--acc:#ff5a36;--acc2:#ffb020;
-  --ok:#3ecf72;--bad:#ff4d5e;--r:16px;--blue:#5ac8fa;
+  --ok:#3ecf72;--okt:#06210f;--bad:#ff4d5e;--okbg:#12301f;--badbg:#34141a;
+  --ub:#3a2218;--ubl:#5a3322;--fb:#1a2430;--fbl:#2a3a4c;
+  --hero:linear-gradient(135deg,#3a1a10,#1f1a17);--tab:#1a1512;color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);
   font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 input{font:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 #app{max-width:680px;margin:0 auto;min-height:100vh}
 .wrap{padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
 .wrap.nt{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
@@ -32,10 +42,11 @@ h2{font-size:22px}
 .logo b{color:var(--acc)}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-weight:700;font-size:14px;white-space:nowrap}
-.hero{background:linear-gradient(135deg,#3a1a10,#1f1a17);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.hero{background:var(--hero);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px}
 .hero p{margin:6px 0 0;color:var(--mut)}
 .hero .quote{color:var(--txt);font-style:italic}
-.tabs{position:fixed;left:0;right:0;bottom:0;background:#1a1512;border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.herorow{display:flex;gap:12px;align-items:center}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--tab);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 .tabs>div{display:flex;width:100%;max-width:680px}
 .tabs button{flex:1;padding:9px 2px 8px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700}
 .tabs button i{font-style:normal;font-size:21px}
@@ -51,8 +62,8 @@ h2{font-size:22px}
 .bar i{display:block;height:100%;background:var(--acc);border-radius:9px;transition:width .3s}
 .done .bar i,.bar.g i{background:var(--ok)}
 .btn{display:block;width:100%;padding:14px;border-radius:14px;font-weight:800;font-size:16px;background:var(--acc);color:#fff;text-align:center}
-.btn.sec2{background:var(--card2);border:1px solid var(--line)}
-.btn.ok{background:var(--ok);color:#06210f}
+.btn.sec2{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+.btn.ok{background:var(--ok);color:var(--okt)}
 .btn.bad{background:var(--bad);color:#fff}
 .btn:disabled{opacity:.4}
 .btn.sm{padding:9px 14px;font-size:14px;width:auto;display:inline-block}
@@ -67,21 +78,21 @@ h2{font-size:22px}
 .pron{color:var(--acc2);font-weight:600}
 .speak,.sp{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--card2);border:1px solid var(--line);font-size:18px;vertical-align:middle;margin-left:6px}
 .opts{display:grid;gap:10px;margin:20px 0}
-.opt{padding:15px;border-radius:14px;background:var(--card);border:2px solid var(--line);font-weight:700;text-align:left;font-size:17px}
-.opt.right{border-color:var(--ok);background:#12301f}
-.opt.wrong{border-color:var(--bad);background:#34141a}
+.opt{padding:15px;border-radius:14px;background:var(--card);border:2px solid var(--line);font-weight:700;text-align:left;font-size:17px;color:var(--txt)}
+.opt.right{border-color:var(--ok);background:var(--okbg)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg)}
 .opts.locked .opt{pointer-events:none}
 input.type,input.tx{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--txt);font-size:18px;outline:none}
 input.type{margin:20px 0;font-size:20px}
-input.type:focus,input.tx:focus{border-color:var(--acc2)}
+input.type:focus,input.tx:focus{border-color:var(--acc)}
 .sheet{position:fixed;left:0;right:0;bottom:0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));border-top:2px solid;animation:up .2s ease-out;z-index:20}
 .sheet>div{max-width:680px;margin:0 auto}
-.sheet.ok{background:#12301f;border-color:var(--ok)}
-.sheet.bad{background:#34141a;border-color:var(--bad)}
+.sheet.ok{background:var(--okbg);border-color:var(--ok)}
+.sheet.bad{background:var(--badbg);border-color:var(--bad)}
 .sheet h3{font-size:18px;margin-bottom:4px}
 .sheet p{margin:0 0 12px}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
-.card .face{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;gap:6px;width:100%;margin:10px 0 16px}
+.card .face{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;gap:6px;width:100%;margin:10px 0 16px;color:var(--txt)}
 .card .big{font-size:34px;font-weight:900}
 .hint{color:var(--mut);font-size:13px;margin-top:10px}
 .res{text-align:center;padding-top:30px}
@@ -98,27 +109,24 @@ input.type:focus,input.tx:focus{border-color:var(--acc2)}
 .shake{animation:sh .3s}
 @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .mood{display:grid;gap:10px;margin:14px 0}
-.mood button{display:flex;gap:12px;align-items:center;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:14px}
-.mood button.on{border-color:var(--acc)}
-.mood .ic{font-size:30px}
+.mood button{display:flex;gap:12px;align-items:center;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:12px;width:100%}
+.mood button.on{border-color:var(--acc);background:var(--ub)}
 .mood small{color:var(--mut);display:block}
-/* conversa */
 .chatlog{display:grid;gap:10px;padding-bottom:12px}
 .chatlog>*{scroll-margin-bottom:240px}
 .b{max-width:88%;padding:11px 14px;border-radius:18px;line-height:1.4;word-wrap:break-word}
 .b.t{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px;justify-self:start}
-.b.u{background:#3a2218;border:1px solid #5a3322;border-bottom-right-radius:4px;justify-self:end}
-.b.f{background:#1a2430;border:1px solid #2a3a4c;justify-self:start}
-.b.err{background:#34141a;border:1px solid var(--bad);justify-self:start}
+.b.u{background:var(--ub);border:1px solid var(--ubl);border-bottom-right-radius:4px;justify-self:end}
+.b.f{background:var(--fb);border:1px solid var(--fbl);justify-self:start}
+.b.err{background:var(--badbg);border:1px solid var(--bad);justify-self:start}
 .b .tr{color:var(--mut);font-size:14px;margin-top:4px}
 .b .tr.hid{filter:blur(5px);cursor:pointer}
 .b .cor{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);color:var(--acc2);font-size:14px}
 .w{display:inline-block;margin:1px 3px 1px 0;padding:1px 6px;border-radius:7px;font-weight:700}
-.w.ok{background:#12301f;color:var(--ok)}
-.w.no{background:#34141a;color:var(--bad);text-decoration:underline}
+.w.ok{background:var(--okbg);color:var(--ok)}
+.w.no{background:var(--badbg);color:var(--bad);text-decoration:underline}
 .dock{position:sticky;bottom:0;background:var(--bg);padding:10px 0 4px;border-top:1px solid var(--line)}
 .cue{background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:15px}
-.cue b{color:var(--acc2)}
 .mic{width:100%;padding:16px;border-radius:16px;background:var(--acc);color:#fff;font-weight:800;font-size:17px;margin-bottom:8px}
 .mic.on{background:var(--bad);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.6}}
@@ -134,16 +142,60 @@ input.type:focus,input.tx:focus{border-color:var(--acc2)}
 .mission.d{color:var(--ok)}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .pair .col{display:grid;gap:8px;align-content:start}
-.pair button{padding:12px 8px;border-radius:12px;background:var(--card);border:2px solid var(--line);font-weight:700;font-size:15px}
-.pair button.sel{border-color:var(--acc2)}
+.pair button{padding:12px 8px;border-radius:12px;background:var(--card);border:2px solid var(--line);font-weight:700;font-size:15px;color:var(--txt)}
+.pair button.sel{border-color:var(--acc)}
 .pair button.gone{opacity:.25;pointer-events:none;border-color:var(--ok)}
-.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:20px;z-index:30}
+.modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;padding:20px;z-index:30}
 .modal>div{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:420px;width:100%}
 .modal p{color:var(--mut)}
-#toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--acc2);color:#2a1a00;padding:10px 16px;border-radius:99px;font-weight:800;z-index:40;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+#toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--acc);color:#fff;padding:10px 16px;border-radius:99px;font-weight:800;z-index:40;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
 #toast.on{opacity:1}
 .card2{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
 .card2 ol{margin:8px 0 0;padding-left:20px;color:var(--mut)}
+/* cadastro, mascote e treino de voz */
+.ob{padding-bottom:96px}
+.obt{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.obt .bar{flex:1;height:8px;margin:0}
+.ctl{display:flex;gap:6px;align-items:center}
+.ctl button{width:38px;height:38px;border-radius:12px;font-size:18px}
+.tg{display:flex;background:var(--card2);border-radius:99px;padding:3px}
+.ctl .tg{width:auto;height:auto;font-size:14px}
+.tg span{padding:5px 9px;border-radius:99px;font-size:14px;line-height:1}
+.tg span.on{background:var(--acc);filter:none}
+.ask{display:flex;gap:10px;align-items:flex-start;margin:6px 0 22px}
+.mas{flex:none;animation:flt 3.2s ease-in-out infinite}
+@keyframes flt{50%{transform:translateY(-5px)}}
+.bub{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;font-size:19px;line-height:1.35;flex:1;margin-top:8px}
+.bub:before{content:"";position:absolute;left:-7px;top:22px;width:12px;height:12px;background:var(--card);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+.ol{display:grid;gap:10px}
+.o2{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;color:var(--txt)}
+.o2.on{border-color:var(--acc);background:var(--ub)}
+.oi{font-size:22px;width:30px;text-align:center;flex:none}
+.ot{flex:1;font-size:17px}
+.ot small{display:block;color:var(--mut);font-weight:400;font-size:14px}
+.ck{opacity:0;color:var(--acc);font-weight:900}
+.o2.on .ck{opacity:1}
+.obf{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%)}
+.obf>*{max-width:648px;margin:0 auto}
+.term{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0}
+.term button{display:grid;gap:4px;justify-items:center;padding:10px 2px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-size:12px;font-weight:700;color:var(--mut)}
+.term button i{font-style:normal;font-size:24px}
+.term button.on{border-color:var(--acc);color:var(--txt);background:var(--ub)}
+.bigterm{font-size:44px;font-weight:900;text-align:center;margin:20px 0 4px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--mut);margin-top:12px}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px;margin:14px 0}
+.chart svg{width:100%;height:auto;display:block}
+.stage{display:grid;place-items:center;padding:6px 0}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;text-align:center;margin:6px 0 4px}
+.pcard .lab{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.pcard h2{font-size:28px;line-height:1.2}
+.micr{display:grid;place-items:center;gap:8px;margin:10px 0}
+.micb{width:84px;height:84px;border-radius:50%;background:var(--card2);border:3px solid var(--mut);font-size:34px;display:grid;place-items:center}
+.micb.on{background:var(--bad);border-color:var(--bad);animation:pulse 1s infinite}
+.micr small{color:var(--mut);text-align:center}
+.lnk{color:var(--mut);text-decoration:underline;padding:6px}
+.fbk{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0;text-align:center}
+@media (prefers-reduced-motion:reduce){.mas{animation:none}.shake,.mic.on,.micb.on{animation:none}}
 </style>
 </head>
 <body>
@@ -242,21 +294,21 @@ const LEVELS={0:'A0',1:'A0',2:'A1',3:'A2',4:'B1',5:'B1'};
    CLIMAS DA PROFESSORA
    ============================================================ */
 const MOODS={
- calma:{nome:'Céu limpo',ic:'☀️',desc:'Calma e paciente. Repete quantas vezes precisar.',
+ calma:{nome:'Paciente',ic:'🙂',desc:'Calma e sem pressa. Repete quantas vezes precisar.',intro:'Oi! Eu vou com calma e explico tudo. Vamos juntos?',
   ok:['Perfeito! Muito bem.','Isso! Ficou ótimo.','Excelente, continue assim.'],
   almost:['Quase lá! Só um ajuste e fica perfeito.','Boa tentativa! Olha o detalhe e repete comigo.'],
   bad:['Tranquilo, errar faz parte. Vamos de novo, sem pressa.','Sem pressa. Olha como fica e tenta mais uma vez.'],
   hello:'Oi! Vamos com calma que a gente chega lá.',
   fin:['Terminamos! Você foi muito bem.','Boa! Mais um passo dado.'],
   low:['Foi difícil hoje, mas é assim que se aprende. Revise os cards e volte.']},
- direta:{nome:'Nublado',ic:'⛅',desc:'Direta, sem rodeio. Só o essencial.',
+ direta:{nome:'Direta',ic:'😐',desc:'Sem rodeio. Só o essencial.',intro:'Sem enrolação: eu falo, você repete, eu corrijo. Combinado?',
   ok:['Certo.','Correto. Próxima.','Isso. Sem enrolação.'],
   almost:['Quase. Atenção nos detalhes.','Meio certo. Corrija e repita.'],
   bad:['Errado. Veja a forma certa e repita.','Não. Olha a resposta e tenta de novo.'],
   hello:'Bora. Sem perder tempo.',
   fin:['Terminou. Volte amanhã.','Feito. Próxima sessão quando puder.'],
   low:['Resultado fraco. Estude os cards e volte.']},
- durona:{nome:'Tempestade',ic:'⛈️',desc:'A durona. Xinga, não passa pano e é só para maiores de 18.',
+ durona:{nome:'Sem filtro',ic:'😈',desc:'Esculacha e solta palavrão. Só para maiores de 18.',intro:'Quer aprender levando esporro? Então bora. Se segura, cacete!',
   ok:['Acertou, porra! Até que o cérebro funciona.','Caramba, um milagre! Acertou sem ajuda.','Certo. Não vai se achar, zé-ninguém.','Boa, caralho! Pena que foi a única.'],
   almost:['Quase, mas tá mole. Fala direito, cacete!','Metade certo, metade burro. Repete!'],
   bad:['ERROU, SUA ANTA! Presta atenção, caramba!','Que merda foi essa? Nem o Google Tradutor erra assim.','Porra, de novo? Seu cérebro tá de férias?','Sério que você falou isso? Vergonha alheia. Repete!'],
@@ -275,7 +327,8 @@ const today=()=>new Date().toISOString().slice(0,10);
 function load(){
   try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
   S=Object.assign({v:2,name:'',level:'',mood:'calma',adult:false,pt:'pt',voice:true,xp:0,streak:0,last:'',words:{},units:{},dlg:{},
-    daily:{d:'',words:0,speaks:0,convos:0,lesson:false,claimed:[]},api:{url:'',token:''},onboarded:false},S||{});
+    daily:{d:'',words:0,speaks:0,convos:0,lesson:false,claimed:[]},api:{url:'',token:''},onboarded:false,voiceMode:'all',theme:'light',goal:0,months:3,minutes:10,weekly:0,interests:[]},S||{});
+  if((S.v||0)<3){S.onboarded=false;S.v=3}
   if(!S.daily||S.daily.d!==today())S.daily={d:today(),words:0,speaks:0,convos:0,lesson:false,claimed:[]};
   if(!MOODS[S.mood])S.mood='calma';
 }
@@ -311,7 +364,7 @@ let toastT;
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),2600)}
 function modal(html){const m=document.createElement('div');m.className='modal';m.innerHTML='<div>'+html+'</div>';document.body.appendChild(m);return m}
 app.addEventListener('click',e=>{
-  const s=e.target.closest('[data-say]');if(s){speak(s.dataset.say);return}
+  const s=e.target.closest('[data-say]');if(s){speak(s.dataset.say,0,1);return}
   const t=e.target.closest('.tr.hid');if(t)t.classList.remove('hid');
 });
 
@@ -325,8 +378,9 @@ function pickVoice(){
   enVoice=v.find(x=>/en[-_]US/i.test(x.lang)&&/samantha|zira|jenny|aria|google us|female/i.test(x.name))||v.find(x=>/en[-_]US/i.test(x.lang))||v[0]||null;
 }
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-function speak(t,rate){
+function speak(t,rate,force){
   if(!S.voice||!('speechSynthesis' in window))return;
+  if(!force&&S.voiceMode==='drill'&&!['pron','dlg','chat'].includes(view))return;
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(String(t).replace('...',''));
   u.lang='en-US';u.rate=rate||.9;if(enVoice)u.voice=enVoice;
@@ -352,7 +406,7 @@ function bindMic(btn,cb){
     if(btn.classList.contains('on')){stopListen();return}
     const label=btn.textContent;
     const ok=listen(alts=>cb(alts),()=>{btn.classList.remove('on');btn.textContent=label});
-    if(ok){btn.classList.add('on');btn.textContent='🎙️ Ouvindo… toque para parar'}
+    if(ok){btn.classList.add('on');if(!btn.dataset.keep)btn.textContent='🎙️ Ouvindo… toque para parar'}
   };
 }
 
@@ -404,66 +458,147 @@ function go(t){stopListen();if('speechSynthesis' in window)speechSynthesis.cance
 /* ============================================================
    ONBOARDING
    ============================================================ */
-let OB;
-function onboarding(){
-  OB={step:0,score:0,q:0};
-  obStep();
+/* mascote próprio: a bolha de conversa, com um rosto para cada clima */
+function mascot(m,size){
+  size=size||96;
+  const c={calma:['#f3f6ff','#2c3a72'],direta:['#e6e1d6','#3a342d'],durona:['#3a3844','#15131a']}[m]||['#f3f6ff','#2c3a72'];
+  const eye=(x,col)=>`<circle cx="${x}" cy="40" r="6.5" fill="${col||'#1b1b2f'}"/>${m==='durona'?'':`<circle cx="${x+2}" cy="38" r="2" fill="#fff"/>`}`;
+  const face=m==='durona'
+    ?`<path d="M30 28l16 7M80 28l-16 7" stroke="#0c0b10" stroke-width="5" stroke-linecap="round"/>${eye(40,'#ff3b30')}${eye(70,'#ff3b30')}<path d="M43 58l4-5 4 5 4-5 4 5 4-5 4 5" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`
+    :m==='direta'
+    ?`<path d="M31 29h16M63 29h16" stroke="${c[1]}" stroke-width="4" stroke-linecap="round"/>${eye(40)}${eye(70)}<path d="M46 56h18" stroke="${c[1]}" stroke-width="4" stroke-linecap="round"/>`
+    :`${eye(40)}${eye(70)}<path d="M45 52q10 10 20 0" fill="none" stroke="${c[1]}" stroke-width="4" stroke-linecap="round"/>`;
+  const bolts=m==='durona'?`<path d="M20 78l-6 14h5l-4 14 11-17h-6l4-11z" fill="#ffb020"/><path d="M88 78l-6 14h5l-4 14 11-17h-6l4-11z" fill="#ffb020"/>`:'';
+  return `<svg class="mas" width="${size}" height="${Math.round(size*1.1)}" viewBox="0 0 110 120" role="img" aria-label="Professora">${bolts}<path d="M32 76l-4 22 26-20z" fill="${c[0]}" stroke="${c[1]}" stroke-width="4" stroke-linejoin="round"/><rect x="8" y="8" width="94" height="72" rx="32" fill="${c[0]}" stroke="${c[1]}" stroke-width="4"/>${face}</svg>`;
 }
+
+const VOICE_OPTS=[{ic:'🔊',t:'Pode falar à vontade',s:'Eu leio em voz alta o tempo todo.'},{ic:'🔈',t:'Só nos treinos de fala',s:'Nas outras telas eu fico quieta.'}];
+const LEVEL_OPTS=[{ic:'🌱',t:'Do zero absoluto'},{ic:'💬',t:'Sei algumas palavras soltas'},{ic:'🙂',t:'Me viro numa conversa simples'},{ic:'🚀',t:'Converso sobre vários assuntos'},{ic:'🏆',t:'Falo de quase tudo, com detalhe'}];
+const LV=['A0','A1','A2','B1','B2'];
+const GOAL_OPTS=[{ic:'✈️',t:'Viajar'},{ic:'📈',t:'Carreira e emprego'},{ic:'💬',t:'Conversar sem travar'},{ic:'📝',t:'Prova e estudos'}];
+const WEEK_OPTS=[{t:'Nada'},{t:'Menos de 10 minutos'},{t:'Uns minutinhos'},{t:'Bastante'}];
+const MIN_OPTS=[{v:5,t:'5 minutos',s:'um papo rápido'},{v:10,t:'10 minutos',s:'o ritmo da maioria'},{v:20,t:'20 minutos',s:'para evoluir mais rápido'},{v:30,t:'30 minutos',s:'turbinado'}];
+const INT_OPTS=[{ic:'✈️',t:'Viajar',th:['Viagem']},{ic:'🏢',t:'Profissão',th:['Negócios']},{ic:'🎬',t:'Séries e filmes',th:['Social']},{ic:'🏠',t:'Dia a dia',th:['Comida','Saúde','Social']},{ic:'👔',t:'Entrevista de emprego',th:['Negócios','Estudo']}];
+const TERMS=[{m:1,t:'1 mês',ic:'🚀',d:'Ritmo intenso: treino todo dia, sem faltar. Dá, mas exige.'},{m:3,t:'3 meses',ic:'✈️',d:'Ritmo forte: quase todo dia, com foco em falar.'},{m:6,t:'6 meses',ic:'🚗',d:'Ritmo bom: constância sem sufoco.'},{m:12,t:'1 ano',ic:'🚲',d:'Ritmo leve: devagar e sempre.'}];
+
+function applyTheme(){
+  document.documentElement.dataset.theme=S.theme==='dark'?'dark':'light';
+  const mt=document.querySelector('meta[name=theme-color]');if(mt)mt.content=S.theme==='dark'?'#14110f':'#f6f3ee';
+}
+function ctl(){
+  return `<div class="ctl"><button id="cv" aria-label="Ligar ou desligar a voz">${S.voice?'🔊':'🔇'}</button><button id="ct" class="tg" aria-label="Trocar tema"><span class="${S.theme!=='dark'?'on':''}">☀️</span><span class="${S.theme==='dark'?'on':''}">🌙</span></button></div>`;
+}
+function bindCtl(){
+  const v=$('#cv'),t=$('#ct');
+  if(v)v.onclick=()=>{S.voice=!S.voice;save();v.textContent=S.voice?'🔊':'🔇';if(!S.voice&&'speechSynthesis' in window)speechSynthesis.cancel()};
+  if(t)t.onclick=()=>{S.theme=S.theme==='dark'?'light':'dark';save();applyTheme();t.querySelectorAll('span').forEach((s,i)=>s.classList.toggle('on',(i===1)===(S.theme==='dark')))};
+}
+function optsHtml(list,sel,multi){
+  return `<div class="ol" id="ol">${list.map((o,i)=>`<button class="o2 ${(multi?sel.includes(i):sel===i)?'on':''}" data-i="${i}"><span class="oi">${o.ic||''}</span><span class="ot"><b>${esc(o.t)}</b>${o.s?`<small>${esc(o.s)}</small>`:''}</span><span class="ck">✓</span></button>`).join('')}</div>`;
+}
+function bindOpts(multi,st){
+  const ol=$('#ol');
+  ol.onclick=e=>{
+    const b=e.target.closest('.o2');if(!b)return;const k=+b.dataset.i;
+    if(multi){const ix=st.v.indexOf(k);if(ix>=0)st.v.splice(ix,1);else st.v.push(k);b.classList.toggle('on')}
+    else{st.v=k;ol.querySelectorAll('.o2').forEach(x=>x.classList.toggle('on',x===b))}
+  };
+}
+const asking=(t,m)=>`<div class="ask">${mascot(m||moodKey(),92)}<div class="bub">${esc(t)}</div></div>`;
+function obShell(inner,next,opt={}){
+  full(`<div class="ob"><div class="obt"><div class="bar"><i style="width:${OB.i/10*100}%"></i></div>${ctl()}</div>${inner}</div><div class="obf"><button class="btn" id="obn">${opt.btn||'Vamos lá'}</button></div>`);
+  bindCtl();$('#obn').onclick=next;
+}
+function planDate(){return new Date(Date.now()+S.months*30.4*864e5).toLocaleDateString('pt-BR',{day:'numeric',month:'long'})}
+function planChart(){
+  return `<div class="chart"><svg viewBox="0 0 320 170" role="img" aria-label="Gráfico: sua segurança para falar cresce com a prática">
+    <text x="8" y="16" font-size="12" fill="var(--mut)">segurança para falar</text>
+    <path d="M30 140 L90 135 L296 112" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M30 140 C110 134 170 110 296 38 L296 150 L30 150 Z" fill="var(--acc)" opacity=".1"/>
+    <path d="M30 140 C110 134 170 110 296 38" fill="none" stroke="var(--acc)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="30" cy="140" r="5" fill="var(--mut)"/><circle cx="296" cy="38" r="7" fill="var(--acc)"/>
+    <text x="290" y="24" font-size="12" font-weight="700" fill="var(--txt)" text-anchor="end">com treino diário</text>
+    <text x="290" y="130" font-size="12" fill="var(--mut)" text-anchor="end">sem praticar</text>
+    <text x="30" y="166" font-size="12" fill="var(--mut)">hoje</text><text x="296" y="166" font-size="12" fill="var(--txt)" font-weight="700" text-anchor="end">${esc(planDate())}</text></svg></div>`;
+}
+let OB;
+function onboarding(startAt){OB={i:startAt||0};obStep()}
 function obStep(){
   view='ob';
-  if(OB.step===0){
-    full(`<div class="res" style="padding-top:10px"><div class="big">🎓</div>
-      <h2 style="margin-top:8px">Inglês Sem Frescura</h2>
-      <p class="mut">Aqui você conversa com uma professora que corrige na hora, com a paciência que você escolher. Primeiro, como posso te chamar?</p>
-      <input class="tx" id="nm" placeholder="Seu nome ou apelido" maxlength="20" value="${esc(S.name)}" style="margin:14px 0">
-      <button class="btn" id="go">Continuar</button></div>`);
-    $('#go').onclick=()=>{S.name=$('#nm').value.trim();save();OB.step=1;obStep()};
-  }else if(OB.step===1){
-    const q=LQ[OB.q];
-    full(`<div class="q-top"><div class="bar"><i style="width:${OB.q/LQ.length*100}%"></i></div></div>
-      <div class="prompt">Teste rápido de nível · ${OB.q+1}/${LQ.length}</div>
-      <h2 class="word" style="font-size:24px">${esc(q.q)}</h2>
-      <div class="opts" id="opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join('')}<button class="opt mut" data-i="-1">Não sei</button></div>`);
-    $('#opts').onclick=e=>{
-      const b=e.target.closest('.opt');if(!b)return;
-      if(+b.dataset.i===q.a)OB.score++;
-      OB.q++;
-      if(OB.q>=LQ.length){S.level=LEVELS[OB.score];save();OB.step=2}
-      obStep();
+  const i=OB.i,nx=()=>{OB.i++;obStep()},st={v:0};
+  if(i===0){
+    st.v=S.voiceMode==='drill'?1:0;
+    obShell(asking('Antes de começar: quer que eu fale em voz alta?','calma')+optsHtml(VOICE_OPTS,st.v),()=>{S.voiceMode=st.v===1?'drill':'all';save();nx()});
+    bindOpts(false,st);
+  }else if(i===1){
+    obShell(asking('Como posso te chamar?','calma')+`<input class="tx" id="nm" placeholder="Seu nome ou apelido" maxlength="20" value="${esc(S.name)}" autocomplete="off">`,()=>{S.name=$('#nm').value.trim();save();nx()});
+  }else if(i===2){
+    st.v=Math.max(0,LV.indexOf(S.level));
+    obShell(asking('Quanto você já entende de inglês?','calma')+optsHtml(LEVEL_OPTS,st.v),()=>{S.level=LV[st.v];save();nx()});
+    bindOpts(false,st);
+  }else if(i===3){
+    st.v=S.goal||0;
+    obShell(asking('O que te faz querer falar inglês?','calma')+optsHtml(GOAL_OPTS,st.v),()=>{S.goal=st.v;save();nx()});
+    bindOpts(false,st);
+  }else if(i===4){
+    let k=Math.max(0,TERMS.findIndex(t=>t.m===S.months));if(k<0)k=1;
+    const draw=()=>{
+      $('#tb').innerHTML=TERMS.map((t,j)=>`<button data-j="${j}" class="${j===k?'on':''}"><i>${t.ic}</i>${t.t}</button>`).join('');
+      $('#bt').textContent=TERMS[k].t;$('#nt').textContent=TERMS[k].d;
     };
-  }else if(OB.step===2){
-    full(`<div class="res" style="padding-top:10px"><div class="big">📊</div>
-      <h2>Seu nível: ${S.level==='A0'?'começando do zero':S.level}</h2>
-      <p class="mut">${S.level==='A0'?'Sem problema. A gente começa pelo básico.':'Boa base. Vamos pular o que você já sabe.'} Agora escolha o jeito da professora.</p></div>
-      ${moodPicker()}<button class="btn" id="go">Continuar</button>`);
-    bindMoodPicker(()=>obStep());
-    $('#go').onclick=()=>{OB.step=3;obStep()};
+    obShell(asking('Em quanto tempo você quer conversar com naturalidade?','calma')+`<div class="bigterm" id="bt"></div><div class="term" id="tb"></div><div class="note" id="nt"></div>`,()=>{S.months=TERMS[k].m;save();nx()});
+    draw();$('#tb').onclick=e=>{const b=e.target.closest('button');if(!b)return;k=+b.dataset.j;draw()};
+  }else if(i===5){
+    st.v=S.weekly||0;
+    obShell(asking('Hoje, quanto tempo por semana você fala inglês em voz alta?','calma')+optsHtml(WEEK_OPTS,st.v),()=>{S.weekly=st.v;save();nx()});
+    bindOpts(false,st);
+  }else if(i===6){
+    st.v=Math.max(0,MIN_OPTS.findIndex(o=>o.v===S.minutes));if(st.v<0)st.v=1;
+    obShell(asking('Quantos minutos por dia cabem na sua rotina?','calma')+optsHtml(MIN_OPTS,st.v),()=>{S.minutes=MIN_OPTS[st.v].v;save();nx()});
+    bindOpts(false,st);
+  }else if(i===7){
+    obShell(`<div class="ask">${mascot('calma',92)}<div class="bub">Com ${S.minutes} minutos por dia, até <b>${esc(planDate())}</b> você já conversa solto.</div></div>${planChart()}<p class="mut" style="text-align:center">Uma estimativa, não uma promessa: o resultado depende de você aparecer todo dia.</p>`,nx);
+  }else if(i===8){
+    st.v=(S.interests||[]).slice();
+    obShell(asking('De que assuntos você mais quer falar? Marque quantos quiser.','calma')+optsHtml(INT_OPTS,st.v,true),()=>{S.interests=st.v;save();nx()});
+    bindOpts(true,st);
+  }else if(i===9){
+    moodStep();
   }else{
-    full(`<h2>Quanto português você quer?</h2>
-      <p class="mut">Você pode mudar isso depois em Perfil.</p>
-      <div class="mood">
-        <button data-p="pt" class="${S.pt==='pt'?'on':''}"><span class="ic">🇧🇷</span><span><b>Com uma mão do português</b><small>Traduções e explicações em português quando precisar.</small></span></button>
-        <button data-p="en" class="${S.pt==='en'?'on':''}"><span class="ic">🇺🇸</span><span><b>Mais em inglês</b><small>Traduções escondidas. Toque para ver quando precisar.</small></span></button>
-      </div>
-      <button class="btn" id="go">Começar</button>`);
-    app.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{S.pt=b.dataset.p;save();obStep()});
-    $('#go').onclick=()=>{S.onboarded=true;save();hoje()};
+    full(`<div class="res" style="padding-top:90px">${mascot(moodKey(),130)}<h2 style="margin-top:14px">Só um instante, estou montando sua lição…</h2></div>`);
+    setTimeout(()=>{S.onboarded=true;save();hoje()},1800);
   }
 }
+function speakPT(t){
+  if(!S.voice||!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';u.rate=1;
+  const v=speechSynthesis.getVoices().find(x=>/^pt[-_]BR/i.test(x.lang));if(v)u.voice=v;
+  speechSynthesis.speak(u);
+}
+function moodStep(){
+  const mk=moodKey();
+  obShell(`<div style="text-align:center">${mascot(mk,140)}</div><div class="bub" style="margin:14px 0 8px;text-align:center">${esc(M().intro)}</div>
+    <div class="row" style="justify-content:center;margin-bottom:14px"><button class="btn sec2 sm" id="lis" style="flex:0 0 auto">🔊 Toque para ouvir</button></div>
+    ${moodPicker()}`,()=>{OB.i++;obStep()},{btn:'Quero começar a lição'});
+  $('#lis').onclick=()=>speakPT(M().intro);
+  bindMoodPicker(()=>moodStep());
+}
 function moodPicker(){
-  return `<div class="mood" id="mp">${Object.entries(MOODS).map(([k,m])=>`<button data-m="${k}" class="${S.mood===k?'on':''}"><span class="ic">${m.ic}</span><span><b>${m.nome}</b><small>${m.desc}</small></span></button>`).join('')}</div>`;
+  return `<div class="mood" id="mp">${Object.entries(MOODS).map(([k,m])=>`<button data-m="${k}" class="${S.mood===k?'on':''}">${mascot(k,52)}<span><b>${m.nome}</b><small>${m.desc}</small></span></button>`).join('')}</div>`;
 }
 function bindMoodPicker(after){
   app.querySelectorAll('#mp [data-m]').forEach(b=>b.onclick=()=>setMood(b.dataset.m,after));
 }
 function setMood(m,after){
   if(m==='durona'&&!S.adult){
-    const md=modal(`<h2>⛈️ Só para maiores de 18</h2><p>A Tempestade usa palavrão e xingamento de brincadeira. Você tem 18 anos ou mais?</p>
+    const md=modal(`<h2>🔞 Só para maiores de 18</h2><p>O modo Sem filtro usa palavrão e xingamento de brincadeira. Você tem 18 anos ou mais?</p>
       <div class="row"><button class="btn sec2" id="n">Não</button><button class="btn" id="y">Sim, tenho</button></div>`);
     md.querySelector('#y').onclick=()=>{S.adult=true;S.mood='durona';save();md.remove();after&&after()};
-    md.querySelector('#n').onclick=()=>{md.remove();toast('Ok, ficamos no Nublado.');S.mood='direta';save();after&&after()};
+    md.querySelector('#n').onclick=()=>{md.remove();toast('Tudo bem, fica no modo Direta.');S.mood='direta';save();after&&after()};
   }else{S.mood=m;save();after&&after()}
 }
+
 
 /* ============================================================
    HOJE
@@ -481,7 +616,7 @@ function hoje(){
   <div class="top"><div class="logo">Inglês <b>Sem Frescura</b></div>
     <div class="chips"><span class="chip">🔥 ${sn}</span><span class="chip">⭐ ${S.xp}</span><span class="chip">Nv ${lvl()}</span></div></div>
   ${(!standalone&&deferredInstall)?`<div class="install"><span>Instale o app na tela inicial</span><button class="btn sm" id="inst">Instalar</button></div>`:''}
-  <div class="hero"><h2>${S.name?esc(S.name)+', ':''}${m.ic} ${m.nome}</h2><p class="quote">“${esc(m.hello)}”</p></div>
+  <div class="hero"><div class="herorow">${mascot(moodKey(),84)}<div><h2>${S.name?esc(S.name)+', ':''}${m.nome}</h2><p class="quote">“${esc(m.hello)}”</p></div></div><p style="margin-top:10px;font-size:14px">Meta: ${S.minutes} min por dia · conversar solto até ${esc(planDate())}</p></div>
   <button class="btn ${S.daily.lesson?'ok':''}" id="daily">${S.daily.lesson?'✅ Lição do dia feita. Refazer?':'▶ Lição do dia'}</button>
   <p class="mut" style="margin:6px 2px 0;font-size:14px">Revisão de palavras, pronúncia e uma conversa. Uns 8 minutos.</p>
   <div class="sec">Missões de hoje</div>
@@ -505,7 +640,9 @@ function hoje(){
    LIÇÃO DO DIA (revisão + pronúncia + conversa)
    ============================================================ */
 function daily(){
-  const dlgs=SITS.flatMap(s=>s.list);
+  const th=new Set((S.interests||[]).flatMap(i=>INT_OPTS[i]?INT_OPTS[i].th:[]));
+  let dlgs=SITS.filter(x=>!th.size||th.has(x.th)).flatMap(x=>x.list);
+  if(!dlgs.length)dlgs=SITS.flatMap(x=>x.list);
   const d=dlgs[(new Date().getDate()+(S.xp%3))%dlgs.length];
   startQuiz({id:'mix',title:'Revisão',items:null},{n:6,next:()=>pronDrill({n:3,next:()=>startDialog(d,{next:()=>{S.daily.lesson=true;award(20);save();dailyDone()}})})});
 }
@@ -538,7 +675,7 @@ function unitMenu(i){
   $('#b').onclick=palavras;
   $('#study').onclick=()=>cards(u);
   $('#quiz').onclick=()=>startQuiz(u);
-  app.querySelectorAll('[data-s] .speak').forEach(b=>b.onclick=()=>speak(b.parentElement.dataset.s));
+  app.querySelectorAll('[data-s] .speak').forEach(b=>b.onclick=()=>speak(b.parentElement.dataset.s,0,1));
 }
 function cards(u){
   view='cards';
@@ -550,7 +687,7 @@ function cards(u){
     <div class="row"><button class="btn sec2" id="sp">🔊 Ouvir</button><button class="btn" id="nx">${i===list.length-1?'Terminar':'Próximo →'}</button></div>`);
     $('#x').onclick=()=>unitMenu(UNITS.indexOf(u));
     $('#card').onclick=()=>{flip=!flip;draw()};
-    $('#sp').onclick=()=>speak(it[0]);
+    $('#sp').onclick=()=>speak(it[0],0,1);
     $('#nx').onclick=()=>{if(i===list.length-1)return unitMenu(UNITS.indexOf(u));i++;flip=false;draw();speak(list[i][0])};
   };
   draw();speak(list[0][0]);
@@ -589,12 +726,12 @@ function nextQ(){
   };
   if(q.type==='en2pt'){
     choose('O que significa?',`<h2 class="word">${esc(w.en)}<button class="speak" id="sp">🔊</button></h2><div class="pron">${esc(w.pron)}</div>`,w.pt,shuffle([w.pt,...others('pt')]));
-    $('#sp').onclick=()=>speak(w.en);speak(w.en);
+    $('#sp').onclick=()=>speak(w.en,0,1);speak(w.en);
   }else if(q.type==='pt2en'){
     choose('Como se diz em inglês?',`<h2 class="word">${esc(w.pt)}</h2>`,w.en,shuffle([w.en,...others('en')]));
   }else if(q.type==='listen'){
     choose('Ouça e escolha o que você ouviu',`<button class="btn sec2" id="sp" style="max-width:220px">🔊 Ouvir de novo</button>`,w.en,shuffle([w.en,...others('en')]));
-    $('#sp').onclick=()=>speak(w.en);speak(w.en);
+    $('#sp').onclick=()=>speak(w.en,0,1);speak(w.en);
   }else{
     full(top+`<div class="prompt">Escreva em inglês</div><h2 class="word">${esc(w.pt)}</h2>
       <input class="type" id="inp" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="digite aqui…"><button class="btn" id="go">Verificar</button>`);
@@ -744,30 +881,39 @@ function phrasePool(){
 }
 let P=null;
 function pronDrill(opt={}){
-  P={list:shuffle(phrasePool()).slice(0,opt.n||5),i:0,scores:[],opt,res:null};
+  P={list:shuffle(phrasePool()).slice(0,opt.n||5),i:0,scores:[],opt,res:null,typing:!SR};
   pronDraw();
 }
 function pronDraw(){
   view='pron';
-  const p=P.list[P.i];
-  full(`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${P.i/P.list.length*100}%"></i></div><span class="mut">${P.i+1}/${P.list.length}</span></div>
-   <div class="prompt">Repita em voz alta</div>
-   <h2 class="word" style="font-size:28px">${esc(p.en)}<button class="speak" id="sp">🔊</button><button class="speak" id="sl" title="devagar">🐢</button></h2>
-   <p class="mut" style="margin-top:0">${esc(p.pt)}</p>
-   <div class="chatlog" id="rs">${P.res?`<div class="b u">${wordsHtml(P.res)}<div class="tr">${Math.round(P.res.score*100)}%</div></div><div class="b t">${esc(pick(M()[grade(P.res.score)]))}</div>`:''}</div>
-   <div class="dock">${P.res?`<div class="row"><button class="btn sec2" id="rt">Repetir</button><button class="btn" id="nx">${P.i===P.list.length-1?'Terminar':'Próxima'}</button></div>`:`
-     <button class="mic" id="mic">🎙️ Falar</button>
-     <div class="send"><input class="tx" id="tx" placeholder="ou digite aqui…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div>`}</div>`);
+  const p=P.list[P.i],mk=moodKey();
+  let body;
+  if(P.res){
+    const g=grade(P.res.score);
+    body=`<div class="stage">${mascot(g==='ok'?'calma':mk,110)}</div>
+      <div class="fbk"><div>${wordsHtml(P.res)}</div><div class="mut" style="margin-top:4px">${Math.round(P.res.score*100)}%</div><div style="margin-top:6px">${esc(pick(M()[g]))}</div></div>
+      <div class="row"><button class="btn sec2" id="rt">Repetir</button><button class="btn" id="nx">${P.i===P.list.length-1?'Terminar':'Próxima'}</button></div>`;
+  }else{
+    body=`<div class="stage">${mascot(mk,110)}</div>
+      ${P.typing?`<div class="send"><input class="tx" id="tx" placeholder="digite a frase em inglês…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div>`
+      :`<div class="micr"><button class="micb" id="mic" data-keep="1" aria-label="Falar">🎙️</button><small id="ml"><b>toque para falar</b><br>um toque para começar, outro quando terminar</small></div>`}
+      ${SR?`<div style="text-align:center"><button class="lnk" id="tg">${P.typing?'falar em voz alta':'digitar em vez de falar'}</button></div>`:'<p class="mut" style="text-align:center;font-size:13px">Seu navegador não ouve voz. Use o Chrome ou o Edge, ou digite.</p>'}`;
+  }
+  full(`<div class="ob" style="padding-bottom:24px"><div class="obt"><button class="x" id="x">✕</button><div class="bar"><i style="width:${P.i/P.list.length*100}%"></i></div>${ctl()}</div>
+    <div class="pcard"><div class="lab">repita comigo · ${P.i+1}/${P.list.length}</div><h2>${esc(p.en)}<button class="sp" id="sp" aria-label="Ouvir">🔊</button><button class="sp" id="sl" aria-label="Ouvir devagar">🐢</button></h2><div class="mut" style="margin-top:4px">${esc(p.pt)}</div></div>${body}</div>`);
+  bindCtl();
   $('#x').onclick=()=>{stopListen();go('hoje')};
-  $('#sp').onclick=()=>speak(p.en);$('#sl').onclick=()=>speak(p.en,.55);
+  $('#sp').onclick=()=>speak(p.en,0,1);$('#sl').onclick=()=>speak(p.en,.55,1);
   const done=alts=>{P.res=evalAns(alts,[p.en]);const sc=P.res.score;bump('speaks');award(Math.round(sc*10));P.scores.push(sc);pronDraw()};
   if(P.res){
     $('#rt').onclick=()=>{P.scores.pop();P.res=null;pronDraw()};
     $('#nx').onclick=()=>{P.i++;P.res=null;if(P.i>=P.list.length)pronEnd();else pronDraw()};
   }else{
-    bindMic($('#mic'),done);
-    const send=()=>{const v=$('#tx').value.trim();if(v)done([v])};
-    $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter')send()};
+    if(P.typing){
+      const send=()=>{const v=$('#tx').value.trim();if(v)done([v])};
+      $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter')send()};
+    }else bindMic($('#mic'),done);
+    const tg=$('#tg');if(tg)tg.onclick=()=>{stopListen();P.typing=!P.typing;pronDraw()};
     speak(p.en);
   }
 }
@@ -850,7 +996,8 @@ function perfil(){
   <div class="set">
     <label><span>Português na explicação<small>Mostra traduções abertas ou escondidas</small></span><span class="seg" id="sp1"><button data-v="pt" class="${S.pt==='pt'?'on':''}">Com</button><button data-v="en" class="${S.pt==='en'?'on':''}">Menos</button></span></label>
     <label><span>Voz da professora</span><span class="seg" id="sp2"><button data-v="1" class="${S.voice?'on':''}">Ligada</button><button data-v="0" class="${!S.voice?'on':''}">Muda</button></span></label>
-    <label><span>Refazer teste de nível</span><button class="btn sm sec2" id="rt">Refazer</button></label>
+    <label><span>Tema</span><span class="seg" id="sp3"><button data-v="light" class="${S.theme!=='dark'?'on':''}">Claro</button><button data-v="dark" class="${S.theme==='dark'?'on':''}">Escuro</button></span></label>
+    <label><span>Refazer a configuração<small>Nível, metas e jeito da professora</small></span><button class="btn sm sec2" id="rt">Refazer</button></label>
   </div>
   <div class="sec">Conversa livre (servidor com IA)</div>
   <div class="set">
@@ -864,7 +1011,8 @@ function perfil(){
   $('#nm').onchange=e=>{S.name=e.target.value.trim();save()};
   $('#sp1').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.pt=v;save();perfil()};
   $('#sp2').onclick=e=>{const v=e.target.dataset.v;if(v===undefined)return;S.voice=v==='1';save();perfil()};
-  $('#rt').onclick=()=>{OB={step:1,score:0,q:0};obStep()};
+  $('#rt').onclick=()=>onboarding(0);
+  $('#sp3').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.theme=v;save();applyTheme();perfil()};
   const saveApi=()=>{S.api={url:$('#au').value.trim(),token:$('#at').value};save()};
   $('#sv').onclick=()=>{saveApi();toast('Salvo')};
   $('#ts').onclick=async()=>{
@@ -882,7 +1030,7 @@ function perfil(){
 /* ============================================================
    INÍCIO
    ============================================================ */
-load();hoje();
+load();applyTheme();hoje();
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 </body>
