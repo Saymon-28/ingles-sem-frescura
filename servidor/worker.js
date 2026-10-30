@@ -7,12 +7,20 @@
 
 const MODEL = 'claude-haiku-5-5';
 const MOODS = ['calma', 'direta', 'durona'];
-const LEVELS = ['A0', 'A1', 'A2', 'B1'];
+const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const LEVEL_STYLE = {
+  A1: 'Use very simple English: very short sentences, common words, present tense.',
+  A2: 'Use simple English: short sentences, everyday vocabulary, basic past and future.',
+  B1: 'Use clear standard English with some idioms; moderate sentence length.',
+  B2: 'Use natural English with varied tenses, phrasal verbs and connectors.',
+  C1: 'Use fluent, nuanced English with idioms and abstract topics.',
+  C2: 'Use sophisticated, near-native English with subtle register and idiom.'
+};
 
 const json = (obj, status, cors) =>
   new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...cors } });
 
-function systemPrompt({ mood, adult, level, pt, name, topic }) {
+function systemPrompt({ mood, adult, level, pt, name, topic, scenario }) {
   const tone = {
     calma: 'Be patient, warm and encouraging. Never rush the student.',
     direta: 'Be blunt and concise. No small talk, no cheering. Short corrections.',
@@ -25,10 +33,12 @@ function systemPrompt({ mood, adult, level, pt, name, topic }) {
   return [
     'You are "Professora", an English teacher for Brazilian Portuguese speakers, chatting in a language-learning app.',
     `Student name: ${name || 'unknown'}. CEFR level: ${level}. Topic: ${topic || 'free choice'}.`,
+    scenario
+      ? `ROLEPLAY SCENARIO (set by the student): "${scenario}". You play the other person in this scene (e.g. airline agent, interviewer, waiter). Stay in character, set the scene in your first message, ask ONE question at a time and react to the student answers like that person would. The student should do most of the talking.`
+      : 'No fixed scenario: chat naturally and keep the student talking.',
     `Tone: ${tone}`,
-    level === 'A0' || level === 'A1'
-      ? 'Use very simple English: short sentences, common words.'
-      : 'Use natural English at the student level, slightly above it.',
+    LEVEL_STYLE[level],
+    'Keep the language strictly at the student level so it is understandable, with at most one slightly harder word per reply.',
     pt === 'pt'
       ? 'Write explanations and corrections in Brazilian Portuguese; keep the conversation itself in English.'
       : 'Keep explanations minimal and mostly in English; use Portuguese only when the student is lost.',
@@ -60,13 +70,14 @@ export default {
     try { body = await req.json(); } catch { return json({ error: 'JSON inválido' }, 400, cors); }
 
     const mood = MOODS.includes(body.mood) ? body.mood : 'calma';
-    const level = LEVELS.includes(body.level) ? body.level : 'A0';
+    const level = LEVELS.includes(body.level) ? body.level : 'A1';
     const opts = {
       mood, level,
       adult: body.adult === true,
       pt: body.pt === 'en' ? 'en' : 'pt',
       name: String(body.name || '').slice(0, 20),
-      topic: String(body.topic || '').slice(0, 40)
+      topic: String(body.topic || '').slice(0, 40),
+      scenario: String(body.scenario || '').slice(0, 200)
     };
 
     let msgs = (Array.isArray(body.messages) ? body.messages : [])

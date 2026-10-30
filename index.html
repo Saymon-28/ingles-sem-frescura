@@ -225,61 +225,180 @@ const UNITS = [
 ];
 
 /* ============================================================
-   DADOS: situações (conversas roteirizadas)
+   CENÁRIOS por nível (A1 a C2): eu pergunto, você responde, eu corrijo
    ============================================================ */
-const SITS = [
- {th:'Viagem',ic:'✈️',list:[
-  {id:'aeroporto',t:'No aeroporto',turns:[
-   {en:'Good morning! Passport, please.',pt:'Bom dia! Passaporte, por favor.',cue:'Entregue o passaporte: “Aqui está.”',a:['Here you are','Here it is','Here is my passport']},
-   {en:'Where are you flying to today?',pt:'Para onde você vai voar hoje?',cue:'Diga: “Eu vou para Nova York.”',a:['I am going to New York','I am flying to New York','To New York']},
-   {en:'Do you have any bags to check in?',pt:'Você tem malas para despachar?',cue:'Diga: “Sim, eu tenho uma mala.”',a:['Yes I have one bag','Yes I have one suitcase','Yes one bag']},
-   {en:'Here is your boarding pass. Gate twelve. Have a nice flight!',pt:'Aqui está seu cartão de embarque. Portão doze. Boa viagem!',cue:'Agradeça: “Muito obrigado.”',a:['Thank you very much','Thank you','Thanks a lot']}]},
-  {id:'hotel',t:'No hotel',turns:[
-   {en:'Welcome to the hotel! Do you have a reservation?',pt:'Bem-vindo ao hotel! Você tem reserva?',cue:'Diga: “Sim, eu tenho uma reserva.”',a:['Yes I have a reservation','Yes I do','I have a reservation']},
-   {en:'How many nights are you staying?',pt:'Quantas noites você vai ficar?',cue:'Diga: “Três noites.”',a:['Three nights','I am staying three nights','I am staying for three nights']},
-   {en:'Would you like breakfast?',pt:'Você gostaria de café da manhã?',cue:'Diga: “Sim, por favor.”',a:['Yes please','Yes I would like breakfast','Yes please I would like breakfast']},
-   {en:'Here is your key. Room two oh five.',pt:'Aqui está sua chave. Quarto 205.',cue:'Pergunte: “Onde fica o elevador?”',a:['Where is the elevator','Where is the lift']}]}]},
- {th:'Comida',ic:'🍽️',list:[
-  {id:'restaurante',t:'No restaurante',turns:[
-   {en:'Hi! A table for how many people?',pt:'Oi! Uma mesa para quantas pessoas?',cue:'Diga: “Para duas pessoas.”',a:['Two people','A table for two','For two people','Table for two']},
-   {en:'Here is the menu. What would you like to drink?',pt:'Aqui está o cardápio. O que você gostaria de beber?',cue:'Diga: “Eu quero água, por favor.”',a:['I would like water please','Water please','I want water please']},
-   {en:'And what would you like to eat?',pt:'E o que você gostaria de comer?',cue:'Diga: “Eu quero frango e arroz.”',a:['I would like chicken and rice','I want chicken and rice','Chicken and rice please']},
-   {en:'Would you like anything else?',pt:'Mais alguma coisa?',cue:'Peça a conta: “A conta, por favor.”',a:['The check please','The bill please','Check please']}]},
-  {id:'cafe',t:'Na cafeteria',turns:[
-   {en:'Hello! What can I get for you?',pt:'Olá! O que posso trazer pra você?',cue:'Diga: “Eu quero um café, por favor.”',a:['I would like a coffee please','A coffee please','I want a coffee please']},
-   {en:'Large or small?',pt:'Grande ou pequeno?',cue:'Diga: “Grande.”',a:['Large','A large one','Large please']},
-   {en:'Would you like milk or sugar?',pt:'Quer leite ou açúcar?',cue:'Diga: “Leite, por favor.”',a:['Milk please','Milk','With milk please']},
-   {en:'That is four dollars.',pt:'São quatro dólares.',cue:'Entregue o dinheiro: “Aqui está.”',a:['Here you are','Here it is']}]}]},
- {th:'Social',ic:'🙂',list:[
-  {id:'apresentacao',t:'Se apresentando',turns:[
-   {en:'Hi! Nice to meet you. I am Sam.',pt:'Oi! Prazer em conhecer. Eu sou o Sam.',cue:'Diga: “Prazer em conhecer você também.”',a:['Nice to meet you too','Nice to meet you','Pleased to meet you']},
-   {en:'Where are you from?',pt:'De onde você é?',cue:'Diga: “Eu sou do Brasil.”',a:['I am from Brazil','I am Brazilian','From Brazil']},
-   {en:'What do you do?',pt:'O que você faz da vida?',cue:'Diga: “Eu trabalho em um escritório.”',a:['I work in an office','I am an office worker']},
-   {en:'That is cool! Do you like it?',pt:'Que legal! Você gosta?',cue:'Diga: “Sim, eu gosto.”',a:['Yes I like it','Yes I do','Yes I like my job']}]},
-  {id:'fimdesemana',t:'Fim de semana',turns:[
-   {en:'Hey! How are you today?',pt:'Ei! Como você está hoje?',cue:'Diga: “Eu estou bem, obrigado.”',a:['I am fine thank you','I am good thank you','Fine thanks']},
-   {en:'What did you do last weekend?',pt:'O que você fez no fim de semana passado?',cue:'Diga: “Eu fui à praia.” (passado de go = went)',a:['I went to the beach']},
-   {en:'Nice! Who did you go with?',pt:'Legal! Com quem você foi?',cue:'Diga: “Eu fui com meus amigos.”',a:['I went with my friends','With my friends']},
-   {en:'Sounds fun! See you later!',pt:'Parece divertido! Até mais!',cue:'Diga: “Até mais!”',a:['See you later','See you','Bye']}]}]},
- {th:'Negócios',ic:'💼',list:[
-  {id:'reuniao',t:'Na reunião',turns:[
-   {en:'Good morning. Please, have a seat.',pt:'Bom dia. Por favor, sente-se.',cue:'Diga: “Obrigado. Bom dia.”',a:['Thank you good morning','Good morning thank you']},
-   {en:'So, tell me about your job.',pt:'Então, me conte sobre o seu trabalho.',cue:'Diga: “Eu trabalho com vendas.”',a:['I work in sales','I work with sales']},
-   {en:'Do you speak English at work?',pt:'Você fala inglês no trabalho?',cue:'Diga: “Sim, todos os dias.”',a:['Yes every day','Yes I speak English every day']},
-   {en:'Great. Can you send me an email?',pt:'Ótimo. Você pode me mandar um e-mail?',cue:'Diga: “Claro, sem problema.”',a:['Sure no problem','Of course no problem','Sure']}]}]},
- {th:'Estudo',ic:'📚',list:[
-  {id:'aula',t:'Na aula',turns:[
-   {en:'Today we will learn the past tense. Any questions?',pt:'Hoje vamos aprender o passado. Alguma dúvida?',cue:'Diga: “Eu não entendo.”',a:['I do not understand','I dont understand']},
-   {en:'No problem. Let me explain again.',pt:'Sem problema. Deixa eu explicar de novo.',cue:'Diga: “Você pode repetir, por favor?”',a:['Can you repeat please','Can you repeat that please','Could you repeat please']},
-   {en:'Of course. Is it clear now?',pt:'Claro. Está claro agora?',cue:'Diga: “Sim, agora está claro.”',a:['Yes it is clear now','Yes now it is clear','Yes it is clear']},
-   {en:'Great! Do you need more time?',pt:'Ótimo! Você precisa de mais tempo?',cue:'Diga: “Não, obrigado.”',a:['No thank you','No thanks']}]}]},
- {th:'Saúde',ic:'🩺',list:[
-  {id:'farmacia',t:'Na farmácia',turns:[
-   {en:'Hello. How can I help you?',pt:'Olá. Como posso ajudar?',cue:'Diga: “Eu preciso de ajuda.”',a:['I need help','I need some help']},
-   {en:'What is the problem?',pt:'Qual é o problema?',cue:'Diga: “Eu estou com dor de cabeça.” (headache)',a:['I have a headache']},
-   {en:'Do you have a fever?',pt:'Você está com febre?',cue:'Diga: “Não, eu não tenho febre.”',a:['No I do not have a fever','No I do not','No fever']},
-   {en:'Take this twice a day.',pt:'Tome isso duas vezes ao dia.',cue:'Pergunte: “Quanto custa?”',a:['How much is it','How much does it cost','How much is this']}]}]}
-];
+const CEFR=['A1','A2','B1','B2','C1','C2'];
+const LVNAME={A1:'Iniciante',A2:'Básico',B1:'Intermediário',B2:'Intermediário superior',C1:'Avançado',C2:'Proficiente'};
+const SCEN=[];
+function sc(lv,th,ic,id,t,ctx,turns){SCEN.push({lv,th,ic,id,t,ctx,turns:turns.map(x=>({en:x[0],pt:x[1],cue:x[2],a:x[3]}))})}
+
+/* ---------- A1 ---------- */
+sc('A1','Viagem','✈️','aeroporto','No aeroporto','Você está no balcão de check-in. Eu sou a atendente.',[
+ ['Good morning! Passport, please.','Bom dia! Passaporte, por favor.','Entregue o passaporte: “Aqui está.”',['Here you are','Here it is','Here is my passport']],
+ ['Where are you flying to today?','Para onde você vai voar hoje?','Diga: “Eu vou para Nova York.”',['I am going to New York','I am flying to New York','To New York']],
+ ['Do you have any bags to check in?','Você tem malas para despachar?','Diga: “Sim, eu tenho uma mala.”',['Yes I have one bag','Yes I have one suitcase','Yes one bag']],
+ ['Here is your boarding pass. Gate twelve. Have a nice flight!','Aqui está seu cartão de embarque. Portão doze. Boa viagem!','Agradeça: “Muito obrigado.”',['Thank you very much','Thank you','Thanks a lot']]]);
+sc('A1','Comida','☕','cafe','Na cafeteria','Você entra numa cafeteria. Eu sou o atendente.',[
+ ['Hello! What can I get for you?','Olá! O que posso trazer pra você?','Diga: “Eu quero um café, por favor.”',['I would like a coffee please','A coffee please','I want a coffee please']],
+ ['Large or small?','Grande ou pequeno?','Diga: “Grande.”',['Large','A large one','Large please']],
+ ['Would you like milk or sugar?','Quer leite ou açúcar?','Diga: “Leite, por favor.”',['Milk please','Milk','With milk please']],
+ ['That is four dollars.','São quatro dólares.','Entregue o dinheiro: “Aqui está.”',['Here you are','Here it is']]]);
+sc('A1','Social','🙂','apresentacao','Se apresentando','Você conhece alguém numa festa. Eu sou o Sam.',[
+ ['Hi! Nice to meet you. I am Sam.','Oi! Prazer em conhecer. Eu sou o Sam.','Diga: “Prazer em conhecer você também.”',['Nice to meet you too','Nice to meet you','Pleased to meet you']],
+ ['Where are you from?','De onde você é?','Diga: “Eu sou do Brasil.”',['I am from Brazil','I am Brazilian','From Brazil']],
+ ['What do you do?','O que você faz da vida?','Diga: “Eu trabalho em um escritório.”',['I work in an office','I am an office worker']],
+ ['That is cool! Do you like it?','Que legal! Você gosta?','Diga: “Sim, eu gosto.”',['Yes I like it','Yes I do','Yes I like my job']]]);
+sc('A1','Comida','🍽️','restaurante','No restaurante','Você chega a um restaurante. Eu sou o garçom.',[
+ ['Hi! A table for how many people?','Oi! Uma mesa para quantas pessoas?','Diga: “Para duas pessoas.”',['Two people','A table for two','For two people','Table for two']],
+ ['Here is the menu. What would you like to drink?','Aqui está o cardápio. O que gostaria de beber?','Diga: “Eu quero água, por favor.”',['I would like water please','Water please','I want water please']],
+ ['And what would you like to eat?','E o que gostaria de comer?','Diga: “Eu quero frango e arroz.”',['I would like chicken and rice','I want chicken and rice','Chicken and rice please']],
+ ['Would you like anything else?','Mais alguma coisa?','Peça a conta: “A conta, por favor.”',['The check please','The bill please','Check please']]]);
+sc('A1','Viagem','🧭','direcoes','Pedindo direção','Você está perdido na rua. Eu sou um morador.',[
+ ['Excuse me, can I help you?','Com licença, posso ajudar?','Pergunte: “Onde fica a estação?”',['Where is the station','Where is the train station','Where is the subway station']],
+ ['The station is on Main Street. Go straight.','A estação fica na Rua Principal. Siga em frente.','Pergunte: “É longe?”',['Is it far','Is it far from here','Is it far away']],
+ ['No, it is five minutes on foot.','Não, são cinco minutos a pé.','Agradeça: “Muito obrigado.”',['Thank you very much','Thanks a lot','Thank you']],
+ ['You are welcome. Have a nice day!','De nada. Tenha um bom dia!','Responda: “Você também.”',['You too','You too thank you','Have a nice day too']]]);
+
+/* ---------- A2 ---------- */
+sc('A2','Viagem','🏨','hotel','No hotel','Você chega ao hotel. Eu sou o recepcionista.',[
+ ['Welcome to the hotel! Do you have a reservation?','Bem-vindo ao hotel! Você tem reserva?','Diga: “Sim, eu tenho uma reserva.”',['Yes I have a reservation','Yes I do','I have a reservation']],
+ ['How many nights are you staying?','Quantas noites você vai ficar?','Diga: “Três noites.”',['Three nights','I am staying three nights','I am staying for three nights']],
+ ['Would you like breakfast?','Você gostaria de café da manhã?','Diga: “Sim, por favor.”',['Yes please','Yes I would like breakfast','Yes please I would like breakfast']],
+ ['Here is your key. Room two oh five.','Aqui está sua chave. Quarto 205.','Pergunte: “Onde fica o elevador?”',['Where is the elevator','Where is the lift']]]);
+sc('A2','Social','🏖️','fimdesemana','Fim de semana','Você encontra um colega na segunda-feira. Eu sou o colega.',[
+ ['Hey! How are you today?','Ei! Como você está hoje?','Diga: “Eu estou bem, obrigado.”',['I am fine thank you','I am good thank you','Fine thanks']],
+ ['What did you do last weekend?','O que você fez no fim de semana passado?','Diga: “Eu fui à praia.” (passado de go = went)',['I went to the beach']],
+ ['Nice! Who did you go with?','Legal! Com quem você foi?','Diga: “Eu fui com meus amigos.”',['I went with my friends','With my friends']],
+ ['Sounds fun! See you later!','Parece divertido! Até mais!','Diga: “Até mais!”',['See you later','See you','Bye']]]);
+sc('A2','Saúde','💊','farmacia','Na farmácia','Você não está bem e vai à farmácia. Eu sou o farmacêutico.',[
+ ['Hello. How can I help you?','Olá. Como posso ajudar?','Diga: “Eu preciso de ajuda.”',['I need help','I need some help']],
+ ['What is the problem?','Qual é o problema?','Diga: “Eu estou com dor de cabeça.” (headache)',['I have a headache']],
+ ['Do you have a fever?','Você está com febre?','Diga: “Não, eu não tenho febre.”',['No I do not have a fever','No I do not','No fever']],
+ ['Take this twice a day.','Tome isso duas vezes ao dia.','Pergunte: “Quanto custa?”',['How much is it','How much does it cost','How much is this']]]);
+sc('A2','Social','👕','compras','Comprando roupa','Você está numa loja de roupas. Eu sou a vendedora.',[
+ ['Hi! Are you looking for something?','Oi! Você está procurando algo?','Diga: “Eu estou procurando uma camiseta.”',['I am looking for a T-shirt','I am looking for a shirt','I need a T-shirt']],
+ ['What size do you wear?','Que tamanho você usa?','Diga: “Eu uso tamanho médio.”',['I wear medium','I am a medium','Medium please']],
+ ['Here you are. Do you want to try it on?','Aqui está. Quer experimentar?','Diga: “Sim, onde fica o provador?”',['Yes where is the fitting room','Yes where are the changing rooms','Yes where can I try it on']],
+ ['It is twenty dollars.','São vinte dólares.','Diga: “Eu levo.”',['I will take it','I will buy it','I take it']]]);
+sc('A2','Viagem','🚕','taxi','No táxi','Você pega um táxi na rua. Eu sou o motorista.',[
+ ['Where to, please?','Para onde, por favor?','Diga: “Para o aeroporto, por favor.”',['To the airport please','To the airport','Airport please']],
+ ['Sure. Are you in a hurry?','Claro. Você está com pressa?','Diga: “Sim, meu voo é às dez.”',['Yes my flight is at ten','Yes I have a flight at ten','Yes my flight leaves at ten']],
+ ['No problem. We will be there in twenty minutes.','Sem problema. Chegamos em vinte minutos.','Pergunte: “Quanto custa?”',['How much is it','How much will it cost','How much does it cost']],
+ ['It is about thirty dollars.','São cerca de trinta dólares.','Diga: “Pode ficar com o troco.”',['Keep the change','You can keep the change']]]);
+sc('A2','Estudo','📚','aula','Na aula','Você está numa aula de inglês. Eu sou o professor.',[
+ ['Today we will learn the past tense. Any questions?','Hoje vamos aprender o passado. Alguma dúvida?','Diga: “Eu não entendo.”',['I do not understand','I dont understand']],
+ ['No problem. Let me explain again.','Sem problema. Deixa eu explicar de novo.','Diga: “Você pode repetir, por favor?”',['Can you repeat please','Can you repeat that please','Could you repeat please']],
+ ['Of course. Is it clear now?','Claro. Está claro agora?','Diga: “Sim, agora está claro.”',['Yes it is clear now','Yes now it is clear','Yes it is clear']],
+ ['Great! Do you need more time?','Ótimo! Você precisa de mais tempo?','Diga: “Não, obrigado.”',['No thank you','No thanks']]]);
+
+/* ---------- B1 ---------- */
+sc('B1','Negócios','💼','reuniao','Reunião de trabalho','Você participa de uma reunião com a diretora. Eu sou a diretora.',[
+ ['Thanks for coming. Can you introduce yourself?','Obrigada por vir. Pode se apresentar?','Diga que é gerente de projetos na equipe de marketing.',['I work as a project manager in the marketing team','I am a project manager in the marketing team','I work in the marketing team as a project manager']],
+ ['What are you working on at the moment?','No que você está trabalhando agora?','Diga que está trabalhando no lançamento de um produto novo.',['I am working on a new product launch','I am working on the launch of a new product','Right now I am working on a new product launch']],
+ ['When will it be ready?','Quando estará pronto?','Diga que deve estar pronto até o fim do mês.',['It will be ready by the end of the month','It should be ready by the end of the month','We will finish it by the end of the month']],
+ ['Great. Do you need any help from my team?','Ótimo. Você precisa de ajuda da minha equipe?','Diga que sim, precisa de ajuda com o design.',['Yes I need some help with the design','Yes we need help with the design','Yes could you help us with the design']]]);
+sc('B1','Comida','😕','reclamacao','Reclamando da comida','O prato chegou frio. Eu sou o garçom.',[
+ ['Is everything alright with your meal?','Está tudo bem com a sua refeição?','Diga que a comida está fria.',['The food is cold','My food is cold','Actually the food is cold']],
+ ['I am so sorry. I will bring you a new one.','Sinto muito. Vou trazer outro.','Diga que tudo bem, mas que está com um pouco de pressa.',['That is fine but I am in a bit of a hurry','Okay but I am in a hurry','That is okay but I am a little in a hurry']],
+ ['It will take about ten minutes. Would you like a drink while you wait?','Leva uns dez minutos. Quer uma bebida enquanto espera?','Peça um suco de laranja.',['Yes I would like an orange juice','Yes an orange juice please','I would like an orange juice please']],
+ ['Of course. And the dessert is on the house.','Claro. E a sobremesa é por conta da casa.','Agradeça pela gentileza.',['That is very kind of you thank you','Thank you that is very kind','Thank you so much that is very nice of you']]]);
+sc('B1','Saúde','🩺','consulta','Consulta médica','Você está no consultório. Eu sou a médica.',[
+ ['What brings you in today?','O que traz você aqui hoje?','Diga que está com dor de garganta há três dias.',['I have had a sore throat for three days','My throat has been sore for three days']],
+ ['Do you have a fever or a cough?','Você tem febre ou tosse?','Diga que tem um pouco de tosse, mas não tem febre.',['I have a little cough but no fever','I have a bit of a cough but I do not have a fever','I have a slight cough but no fever']],
+ ['Are you allergic to any medication?','Você é alérgico a algum remédio?','Diga que é alérgico a penicilina.',['I am allergic to penicillin','Yes I am allergic to penicillin']],
+ ['I will prescribe something. Rest and drink plenty of water.','Vou receitar algo. Descanse e beba bastante água.','Pergunte quando poderá voltar ao trabalho.',['When can I go back to work','When can I return to work','When will I be able to go back to work']]]);
+sc('B1','Viagem','🚗','carro','Alugando um carro','Você está na locadora. Eu sou o atendente.',[
+ ['Hello, do you have a reservation?','Olá, você tem reserva?','Diga que reservou um carro compacto para três dias.',['Yes I booked a compact car for three days','Yes I reserved a small car for three days','I have a reservation for a compact car for three days']],
+ ['Great. Would you like to add full insurance?','Ótimo. Quer adicionar o seguro completo?','Pergunte quanto custa o seguro.',['How much does the insurance cost','How much is the insurance','What is the price of the insurance']],
+ ['It is fifteen dollars a day.','São quinze dólares por dia.','Diga que prefere o seguro básico.',['I prefer the basic insurance','I would rather have the basic insurance','I will take the basic one']],
+ ['No problem. Please return the car with a full tank.','Sem problema. Devolva o carro com o tanque cheio.','Pergunte se pode devolver o carro no aeroporto.',['Can I return the car at the airport','Is it possible to return the car at the airport','Can I drop off the car at the airport']]]);
+sc('B1','Negócios','👔','entrevista','Entrevista de emprego','Você está numa entrevista de vendas. Eu sou o entrevistador.',[
+ ['Thanks for coming. Tell me a little about yourself.','Obrigado por vir. Fale um pouco de você.','Diga que tem cinco anos de experiência em vendas.',['I have five years of experience in sales','I have worked in sales for five years','I have five years of sales experience']],
+ ['Why do you want to work here?','Por que você quer trabalhar aqui?','Diga que admira a empresa e quer crescer profissionalmente.',['I admire your company and I want to grow professionally','I admire this company and I want to grow in my career','I really admire your company and want to develop my career']],
+ ['What is your biggest strength?','Qual é o seu maior ponto forte?','Diga que é organizado e trabalha bem em equipe.',['I am organized and I work well in a team','I am organized and a good team player','I am very organized and I work well with others']],
+ ['Do you have any questions for us?','Você tem alguma pergunta para nós?','Pergunte como é a equipe com quem vai trabalhar.',['What is the team like','Can you tell me about the team','What is the team I will work with like']]]);
+
+/* ---------- B2 ---------- */
+sc('B2','Viagem','🛫','vooc','Voo cancelado','Seu voo foi cancelado. Eu sou a atendente da companhia aérea.',[
+ ['I am afraid your flight has been cancelled due to bad weather.','Receio que seu voo foi cancelado por causa do mau tempo.','Reaja e pergunte quando sai o próximo voo.',['When is the next flight','When does the next flight leave','What time is the next available flight']],
+ ['The next one departs tomorrow morning at eight.','O próximo parte amanhã às oito da manhã.','Diga que precisa chegar hoje por causa de uma reunião importante.',['I need to get there today because of an important meeting','I have to arrive today because I have an important meeting','It is important that I arrive today because of a meeting']],
+ ['Let me check other airlines. Would you accept a connection?','Vou ver outras companhias. Aceitaria uma conexão?','Diga que aceita uma conexão, desde que chegue à noite.',['I would accept a connection as long as I arrive tonight','I can take a connection if I get there tonight','A connection is fine provided that I arrive tonight']],
+ ['I found a seat on a flight via Chicago. It lands at ten p.m.','Achei um lugar num voo via Chicago. Pousa às dez da noite.','Aceite e pergunte sobre hotel e refeições durante a espera.',['I will take it and could you tell me about a hotel and meals while I wait','I will take it what about accommodation and meals','I will take it will the airline cover meals and a hotel']]]);
+sc('B2','Negócios','📅','prazo','Negociando um prazo','Seu chefe pede um relatório. Eu sou o chefe.',[
+ ['We need the report by Friday. Is that realistic?','Precisamos do relatório até sexta. É realista?','Diga que é difícil e proponha entregar na segunda-feira.',['That is going to be difficult could I deliver it on Monday','Friday is tight so could we move it to Monday','I am afraid Friday is hard how about Monday']],
+ ['Why would you need more time?','Por que precisaria de mais tempo?','Explique que ainda faltam dados do departamento financeiro.',['I am still waiting for some data from finance','We still do not have the data from the finance department','The finance department has not sent me the numbers yet']],
+ ['I understand. Can you send a partial version on Friday?','Entendo. Pode mandar uma versão parcial na sexta?','Concorde e diga que enviará um rascunho com as conclusões principais.',['Sure I can send a draft with the main conclusions','Yes I will send a draft with the key findings','That works I will send a draft with the main points']],
+ ['Perfect. Please keep me updated.','Perfeito. Me mantenha informado.','Prometa avisar assim que receber os dados.',['I will let you know as soon as I get the data','I will keep you posted as soon as I receive the data','I will update you the moment the data arrives']]]);
+sc('B2','Negócios','🗣️','discordar','Discordando com educação','Numa reunião, um colega propõe cortar o marketing. Eu sou o colega.',[
+ ['I think we should cut the budget for marketing.','Acho que devemos cortar o orçamento de marketing.','Discorde educadamente.',['I see your point but I am not sure I agree','I understand but I do not completely agree','With all due respect I do not fully agree']],
+ ['Why not? We are spending too much.','Por que não? Estamos gastando demais.','Diga que cortar agora reduziria as vendas no próximo trimestre.',['Cutting it now would reduce our sales next quarter','If we cut it now sales could drop next quarter','Reducing it now might hurt next quarter sales']],
+ ['Do you have a better suggestion?','Você tem uma sugestão melhor?','Sugira reduzir gastos com viagens em vez disso.',['We could reduce travel expenses instead','How about cutting travel costs instead','Maybe we should reduce travel expenses instead']],
+ ['That is a fair point. Let us look at the numbers.','É um bom argumento. Vamos olhar os números.','Ofereça-se para preparar uma comparação até amanhã.',['I can prepare a comparison by tomorrow','I could put together a comparison by tomorrow','Let me prepare a comparison for tomorrow']]]);
+sc('B2','Social','🏠','apto','Visitando um apartamento','Você visita um apartamento para alugar. Eu sou o corretor.',[
+ ['Welcome! This is the living room. As you can see, it gets a lot of light.','Bem-vindo! Esta é a sala. Como vê, tem muita luz.','Elogie o apartamento e pergunte o valor do aluguel.',['It is lovely how much is the rent','It looks great what is the monthly rent','It is beautiful how much is the rent']],
+ ['It is twelve hundred a month, utilities not included.','São mil e duzentos por mês, sem as contas.','Pergunte quais despesas não estão incluídas.',['What exactly is not included','Which bills are not included','What are the utilities that are not included']],
+ ['Electricity and internet. Water is included.','Luz e internet. A água está incluída.','Pergunte se pode ter um animal de estimação.',['Are pets allowed','Can I have a pet here','Do you allow pets']],
+ ['Small pets are fine with a deposit.','Animais pequenos podem, com um depósito.','Diga que está interessado e pergunte como funciona o contrato.',['I am interested what does the contract involve','I am interested how does the lease work','I am interested could you explain the contract']]]);
+sc('B2','Social','📞','atendimento','Reclamando por telefone','Seu pedido online não chegou. Eu sou o atendente.',[
+ ['Thank you for calling customer service. How can I help?','Obrigado por ligar. Como posso ajudar?','Diga que seu pedido não chegou, apesar de confirmado.',['My order has not arrived although it was confirmed','I placed an order but it never arrived even though it was confirmed','My order never came even though it had been confirmed']],
+ ['I am sorry to hear that. Could you give me your order number?','Sinto muito. Pode me dar o número do pedido?','Diga que o número é quatro oito dois um.',['The order number is four eight two one','It is four eight two one','My order number is four eight two one']],
+ ['I see the problem. The package was sent to the wrong address.','Vi o problema. O pacote foi para o endereço errado.','Peça que reenviem hoje e diga que quer uma compensação.',['Please send it again today and I would like some compensation','Could you resend it today and compensate me','I would like it resent today along with some compensation']],
+ ['We will resend it today with free shipping and a ten percent discount.','Reenviaremos hoje com frete grátis e dez por cento de desconto.','Aceite e peça uma confirmação por e-mail.',['That sounds fair could you confirm by email','That is fine please confirm it by email','Thank you please send me a confirmation by email']]]);
+
+/* ---------- C1 ---------- */
+sc('C1','Negócios','🎯','entrevista2','Entrevista para liderança','Entrevista para um cargo de gestão. Eu sou a diretora de RH.',[
+ ['Walk me through your career and what drew you to this role.','Conte sua trajetória e o que te atraiu para este cargo.','Resuma sua trajetória e diga que busca mais responsabilidade estratégica.',['I started in operations and moved into management and now I am looking for more strategic responsibility','I have built my career in operations and I am now seeking a role with greater strategic responsibility','After several years in operations I am ready for a more strategic role']],
+ ['What would you say is your greatest weakness?','Qual diria que é sua maior fraqueza?','Admita que às vezes assume tarefas demais e explique como lida com isso.',['I sometimes take on too much but I have learned to delegate','I tend to take on too many tasks but I am learning to delegate','Occasionally I overcommit and I have been working on delegating more']],
+ ['Tell me about a time you handled a major conflict at work.','Conte uma vez em que resolveu um grande conflito no trabalho.','Descreva um conflito na equipe que você resolveu ouvindo os dois lados.',['Two colleagues disagreed about priorities and I resolved it by listening to both sides','There was a conflict in my team and I solved it by hearing both sides and finding common ground','I mediated a dispute by listening to everyone and finding a compromise']],
+ ['Where do you see yourself in five years?','Onde você se vê em cinco anos?','Diga que se vê liderando uma equipe maior e contribuindo para a estratégia.',['I see myself leading a larger team and contributing to the strategy','In five years I hope to be leading a bigger team and shaping strategy','I would like to be managing a larger team and helping define the strategy']]]);
+sc('C1','Negócios','💰','salario','Negociando salário','Você recebeu uma proposta de emprego. Eu sou o gerente de contratação.',[
+ ['We would like to offer you the position. How do you feel about the package?','Queremos te oferecer a vaga. O que acha do pacote?','Agradeça e diga que o salário está abaixo do que esperava.',['Thank you I am delighted but the salary is lower than I expected','I appreciate the offer but the salary is below what I had in mind','Thank you for the offer however the salary is below my expectations']],
+ ['What figure did you have in mind?','Que valor você tinha em mente?','Cite uma faixa maior e justifique pela sua experiência.',['Given my experience I was hoping for something between ninety and one hundred thousand','Based on my experience I would expect between ninety and one hundred thousand','Considering my background I was thinking of ninety to one hundred thousand']],
+ ['That is above our budget. Could you be flexible?','Isso passa do nosso orçamento. Poderia ser flexível?','Diga que é flexível se houver bônus e mais dias de férias.',['I can be flexible if there is a bonus and extra vacation days','I am open to flexibility provided that we include a bonus and more vacation','I would be flexible if we added a performance bonus and additional vacation']],
+ ['Let me see what I can do and get back to you tomorrow.','Vou ver o que posso fazer e retorno amanhã.','Diga que aguarda o retorno e que está animado para entrar na equipe.',['I look forward to hearing from you and I am excited about joining the team','I will wait for your answer and I am really excited about joining','I am looking forward to your reply and to the possibility of joining the team']]]);
+sc('C1','Social','🤖','ia','Debate sobre inteligência artificial','Numa conversa social, alguém puxa o assunto IA. Eu sou o interlocutor.',[
+ ['Do you think artificial intelligence will take over most jobs?','Você acha que a IA vai tomar a maioria dos empregos?','Dê sua opinião: vai transformar muitos empregos, mas não substituir tudo.',['I think it will transform many jobs but it will not replace everything','It will change a lot of jobs but I do not believe it will replace all of them','AI will reshape many professions rather than eliminate all of them']],
+ ['But what about people who cannot adapt?','Mas e as pessoas que não conseguem se adaptar?','Diga que governos e empresas precisam investir em requalificação.',['Governments and companies need to invest in retraining','That is why retraining programs are essential and both governments and companies should fund them','It is up to governments and businesses to invest in reskilling']],
+ ['Some argue that is too optimistic. Is it?','Alguns dizem que isso é otimista demais. É?','Admita que há riscos, mas defenda que a regulação pode reduzi-los.',['There are risks but they can be reduced with proper regulation','I admit there are risks yet I believe good regulation can mitigate them','The risks are real but regulation can help limit them']],
+ ['Interesting. Would you use AI at work every day?','Interessante. Você usaria IA no trabalho todo dia?','Diga que já usa e que o importante é revisar o resultado.',['I already do and the key is to review the results carefully','I do use it and what matters is checking the output','Yes I use it daily as long as I double check what it produces']]]);
+sc('C1','Negócios','🤝','feedback','Feedback difícil com um colega','Um colega quer conversar sobre um problema entre vocês. Eu sou o colega.',[
+ ['Do you have a minute? I wanted to talk about yesterday presentation.','Tem um minuto? Queria falar da apresentação de ontem.','Diga que claro e pergunte o que ele achou.',['Of course what did you think','Sure how did you find it','Absolutely what are your thoughts']],
+ ['Honestly, I felt you ignored my input during the meeting.','Sinceramente, senti que você ignorou minha contribuição na reunião.','Demonstre surpresa, peça desculpas e diga que não foi a intenção.',['I am sorry to hear that it was not my intention','I apologize I did not mean to ignore your input','I am sorry that was not my intention at all']],
+ ['I appreciate that. It would help if I could present my part next time.','Agradeço. Ajudaria se eu apresentasse minha parte da próxima vez.','Concorde e proponha dividir a apresentação desde o planejamento.',['That makes sense let us split the presentation from the planning stage','I agree let us divide the presentation from the start','Absolutely let us plan the sections together from the beginning']],
+ ['Great. Thanks for hearing me out.','Ótimo. Obrigado por me ouvir.','Responda que o feedback honesto é valioso para você.',['Thank you for being honest it is really valuable to me','I appreciate your honesty it means a lot','Honest feedback is very valuable to me thank you']]]);
+
+/* ---------- C2 ---------- */
+sc('C2','Negócios','📝','contrato','Negociando um contrato','Fechamento de contrato com um fornecedor. Eu sou o advogado da outra parte.',[
+ ['Before we sign, we would like to revisit the termination clause.','Antes de assinar, gostaríamos de rever a cláusula de rescisão.','Diga que está aberto, mas quer entender a preocupação por trás.',['I am open to it but I would like to understand the concern behind it','We are willing to discuss it though I would first like to understand your concerns','Happy to revisit it provided that I understand what is driving the request']],
+ ['Frankly, a thirty-day notice leaves us exposed.','Francamente, um aviso de trinta dias nos deixa expostos.','Proponha sessenta dias, com multa proporcional ao tempo restante.',['We could extend it to sixty days with a penalty proportional to the remaining term','I would suggest sixty days with a fee in proportion to what remains of the contract','How about sixty days and a proportionate penalty for the remaining period']],
+ ['That would be acceptable, provided liability is capped.','Seria aceitável, desde que a responsabilidade tenha um teto.','Diga que um teto é razoável, desde que seja recíproco.',['A cap on liability is reasonable as long as it applies to both parties','Capping liability is fine if it is reciprocal','We can agree to a cap provided it is mutual']],
+ ['Then I think we are close. Shall we have our lawyers draft it?','Então acho que estamos perto. Pedimos aos advogados para redigir?','Concorde e sugira fechar os detalhes até o fim da semana.',['Yes let us have them draft it and finalize the details by the end of the week','Agreed let us ask them to prepare it and settle the remaining points by Friday','By all means let us get it drafted and wrap up the details by the end of the week']]]);
+sc('C2','Social','🥂','brinde','Discurso e brinde','Você foi convidado a falar na festa de fim de ano. Eu sou o seu chefe.',[
+ ['Would you like to say a few words to the team?','Gostaria de dizer algumas palavras à equipe?','Aceite com humildade e agradeça a todos pelo apoio.',['I would be honoured and I am deeply grateful to everyone for their support','It would be my pleasure and I want to thank you all for your support','Gladly and I owe a great deal to everyone here for their support']],
+ ['What was the most challenging part of this year?','Qual foi a parte mais desafiadora deste ano?','Diga que foi manter o ânimo da equipe durante a reestruturação.',['Keeping morale up during the restructuring was the hardest part','The most challenging part was sustaining the team morale throughout the restructuring','Maintaining morale while we restructured was undoubtedly the toughest part']],
+ ['And what are you most proud of?','E do que você mais se orgulha?','Diga que se orgulha de como todos se ajudaram sem buscar crédito.',['I am most proud of how everyone helped one another without seeking credit','What makes me proudest is that people supported each other without expecting recognition','I take most pride in how we looked out for one another and never sought the spotlight']],
+ ['Please, raise your glasses.','Por favor, levantem as taças.','Faça o brinde: ao sucesso e à amizade da equipe.',['To our success and to the friendship of this team','Here is to our success and to the friendship that holds this team together','Cheers to our success and to the bond between us']]]);
+sc('C2','Social','⚖️','debate','Debate de ideias','Um jantar com debate sobre trabalho remoto. Eu sou um convidado cético.',[
+ ['Some say remote work has eroded company culture. What is your take?','Dizem que o trabalho remoto corroeu a cultura das empresas. Qual sua opinião?','Diga que depende: enfraquece o vínculo, mas amplia a autonomia e o acesso a talentos.',['It depends it can weaken bonds but it also expands autonomy and access to talent','It cuts both ways it may erode cohesion yet it grants autonomy and a wider talent pool','There is a trade-off it can dilute the culture but it increases autonomy and broadens hiring']],
+ ['Surely cohesion matters more than flexibility?','Com certeza a coesão importa mais que a flexibilidade?','Contra-argumente: coesão vem de confiança e rituais, não só de presença física.',['Not necessarily cohesion is built through rituals and trust rather than physical presence alone','I would argue cohesion comes from trust and shared routines not just from being in the same room','Cohesion depends on trust and routine not merely on sharing an office']],
+ ['That sounds idealistic. Where is the evidence?','Parece idealista. Onde está a evidência?','Reconheça que a evidência é mista e depende do setor e da liderança.',['I concede the evidence is mixed and it varies by industry and leadership','Admittedly the evidence is inconclusive and depends on the sector and on how well it is led','The data is mixed I will grant you and it hinges on the industry and the quality of leadership']],
+ ['So what would you recommend?','Então o que você recomendaria?','Recomende um modelo híbrido, com encontros presenciais intencionais.',['I would recommend a hybrid model with deliberate in person gatherings','A hybrid arrangement with purposeful face to face meetings seems wisest','I would opt for a hybrid approach with intentional in person time']]]);
+sc('C2','Negócios','🧩','mediacao','Mediando um conflito','Duas equipes se culpam por um atraso. Eu sou o diretor.',[
+ ['Both teams blame each other for the delay. How do you intend to handle this?','As duas equipes se culpam pelo atraso. Como pretende lidar com isso?','Diga que quer ouvir cada lado separadamente antes de concluir algo.',['I would like to hear each side separately before drawing any conclusions','First I want to listen to each team on its own before reaching a verdict','I intend to speak with each team individually before jumping to conclusions']],
+ ['They are quite resentful, though.','Mas eles estão bem ressentidos.','Diga que o ressentimento costuma esconder expectativas não atendidas e que vai investigá-las.',['Resentment often masks unmet expectations and that is what I will explore','Usually resentment conceals expectations that were not met so I will look into those','Resentment tends to hide unmet expectations which I intend to uncover']],
+ ['What if neither side backs down?','E se nenhum lado ceder?','Responda que buscará um objetivo comum e definirá responsabilidades por escrito.',['Then I will seek a shared goal and put responsibilities in writing','I would anchor the discussion in a common goal and document who is responsible for what','I will focus on a common objective and formalise the responsibilities in writing']],
+ ['I admire your composure. Please keep me informed.','Admiro sua serenidade. Me mantenha informado.','Agradeça e comprometa-se a dar um relatório até quinta-feira.',['Thank you I will send you a report by Thursday','I appreciate that I will update you with a report by Thursday','Thank you you will have a progress report by Thursday']]]);
+
+/* progressão: libera o próximo nível ao concluir 3 cenários com 70% ou mais */
+const startIdx=()=>Math.max(0,CEFR.indexOf(S.level));
+function lvStats(l){const list=SCEN.filter(s=>s.lv===l);const done=list.filter(s=>(S.dlg[s.id]||0)>=70).length;return {list,done,need:Math.min(3,list.length)}}
+function unlocked(i){if(i<=startIdx())return true;const p=lvStats(CEFR[i-1]);return unlocked(i-1)&&p.done>=p.need}
+function curLevelIdx(){let c=0;CEFR.forEach((_,i)=>{if(unlocked(i))c=i});return c}
+function nextScen(){
+  const cur=curLevelIdx();
+  const pick1=l=>SCEN.find(s=>s.lv===l&&(S.dlg[s.id]||0)<70);
+  return pick1(CEFR[cur])||CEFR.slice(0,cur).reverse().map(pick1).find(Boolean)||null;
+}
 
 const LQ=[
  {q:'How ___ you?',o:['is','are','am','be'],a:1},
@@ -438,14 +557,15 @@ function evalAns(alts,answers){
   alts.forEach(s=>answers.forEach(a=>{const r=compare(a,s);r.target=a;r.said=s;if(!best||r.score>best.score)best=r}));
   return best;
 }
-const grade=sc=>sc>=.85?'ok':sc>=.55?'almost':'bad';
+const GOK=[.85,.85,.75,.65,.6,.55],GAL=[.55,.55,.5,.45,.4,.35];
+const grade=(sc,l)=>{l=l||0;return sc>=GOK[l]?'ok':sc>=GAL[l]?'almost':'bad'};
 const wordsHtml=r=>r.words.map(x=>`<span class="w ${x.ok?'ok':'no'}">${esc(x.w)}</span>`).join('');
 
 /* ============================================================
    NAVEGAÇÃO COM ABAS
    ============================================================ */
 let view='hoje';
-const TABS=[['hoje','🏠','Hoje'],['conversar','💬','Conversar'],['situ','🎭','Situações'],['palavras','📖','Palavras'],['perfil','⚙️','Perfil']];
+const TABS=[['hoje','🏠','Hoje'],['conversar','💬','Conversar'],['situ','🎭','Cenários'],['palavras','📖','Palavras'],['perfil','⚙️','Perfil']];
 function shell(inner,tab){
   view=tab;
   app.innerHTML=`<div class="wrap">${inner}</div><nav class="tabs"><div>${TABS.map(t=>`<button data-t="${t[0]}" class="${t[0]===tab?'on':''}"><i>${t[1]}</i>${t[2]}</button>`).join('')}</div></nav>`;
@@ -474,7 +594,7 @@ function mascot(m,size){
 
 const VOICE_OPTS=[{ic:'🔊',t:'Pode falar à vontade',s:'Eu leio em voz alta o tempo todo.'},{ic:'🔈',t:'Só nos treinos de fala',s:'Nas outras telas eu fico quieta.'}];
 const LEVEL_OPTS=[{ic:'🌱',t:'Do zero absoluto'},{ic:'💬',t:'Sei algumas palavras soltas'},{ic:'🙂',t:'Me viro numa conversa simples'},{ic:'🚀',t:'Converso sobre vários assuntos'},{ic:'🏆',t:'Falo de quase tudo, com detalhe'}];
-const LV=['A0','A1','A2','B1','B2'];
+const LV=['A1','A1','A2','B1','B2'];
 const GOAL_OPTS=[{ic:'✈️',t:'Viajar'},{ic:'📈',t:'Carreira e emprego'},{ic:'💬',t:'Conversar sem travar'},{ic:'📝',t:'Prova e estudos'}];
 const WEEK_OPTS=[{t:'Nada'},{t:'Menos de 10 minutos'},{t:'Uns minutinhos'},{t:'Bastante'}];
 const MIN_OPTS=[{v:5,t:'5 minutos',s:'um papo rápido'},{v:10,t:'10 minutos',s:'o ritmo da maioria'},{v:20,t:'20 minutos',s:'para evoluir mais rápido'},{v:30,t:'30 minutos',s:'turbinado'}];
@@ -619,10 +739,12 @@ function hoje(){
   <div class="hero"><div class="herorow">${mascot(moodKey(),84)}<div><h2>${S.name?esc(S.name)+', ':''}${m.nome}</h2><p class="quote">“${esc(m.hello)}”</p></div></div><p style="margin-top:10px;font-size:14px">Meta: ${S.minutes} min por dia · conversar solto até ${esc(planDate())}</p></div>
   <button class="btn ${S.daily.lesson?'ok':''}" id="daily">${S.daily.lesson?'✅ Lição do dia feita. Refazer?':'▶ Lição do dia'}</button>
   <p class="mut" style="margin:6px 2px 0;font-size:14px">Revisão de palavras, pronúncia e uma conversa. Uns 8 minutos.</p>
+  ${(()=>{const c=curLevelIdx(),st=lvStats(CEFR[c]),nxt=c<CEFR.length-1;const pct=nxt?Math.min(100,st.done/st.need*100):100;return `<div class="card2" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center"><b>Nível de conversa: ${CEFR[c]} · ${esc(LVNAME[CEFR[c]])}</b></div><div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div><small class="mut">${nxt?`${st.done}/${st.need} cenários com 70% ou mais para liberar o ${CEFR[c+1]}`:'Nível máximo liberado'}</small></div>`})()}
   <div class="sec">Missões de hoje</div>
   <div class="card2" style="padding:4px 14px">${MISSIONS.map(x=>{const v=Math.min(S.daily[x.k]||0,x.n),d=v>=x.n;return `<div class="mission ${d?'d':''}"><span>${d?'✅':'🎯'}</span><span style="min-width:150px">${x.t}</span><div class="bar ${d?'g':''}"><i style="width:${v/x.n*100}%"></i></div><span>${v}/${x.n}</span></div>`}).join('')}</div>
   <div class="sec">Treinar agora</div>
   <div class="list">
+    ${nextScen()?`<button class="unit" id="a-scen"><div class="em">${nextScen().ic}</div><div><h3>Próximo cenário</h3><small>${esc(nextScen().t)} · ${nextScen().lv}</small></div></button>`:''}
     <button class="unit" id="a-chat"><div class="em">💬</div><div><h3>Conversa livre</h3><small>Fale sobre qualquer assunto</small></div></button>
     <button class="unit" id="a-pron"><div class="em">🎙️</div><div><h3>Treino de pronúncia</h3><small>Repita frases e veja a nota por palavra</small></div></button>
     <button class="unit" id="a-game"><div class="em">⏱️</div><div><h3>Liga as palavras</h3><small>Combine inglês e português antes do tempo acabar</small></div></button>
@@ -631,6 +753,7 @@ function hoje(){
   const inst=$('#inst');if(inst)inst.onclick=async()=>{deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;hoje()};
   $('#daily').onclick=daily;
   $('#a-chat').onclick=()=>go('conversar');
+  const as=$('#a-scen');if(as)as.onclick=()=>scenIntro(nextScen());
   $('#a-pron').onclick=()=>pronDrill({n:5});
   $('#a-game').onclick=game;
   const au=$('#a-unit');if(au)au.onclick=()=>unitMenu(nextUnit);
@@ -641,9 +764,11 @@ function hoje(){
    ============================================================ */
 function daily(){
   const th=new Set((S.interests||[]).flatMap(i=>INT_OPTS[i]?INT_OPTS[i].th:[]));
-  let dlgs=SITS.filter(x=>!th.size||th.has(x.th)).flatMap(x=>x.list);
-  if(!dlgs.length)dlgs=SITS.flatMap(x=>x.list);
-  const d=dlgs[(new Date().getDate()+(S.xp%3))%dlgs.length];
+  const cur=curLevelIdx();
+  let pool=SCEN.filter(x=>CEFR.indexOf(x.lv)===cur&&(S.dlg[x.id]||0)<70&&(!th.size||th.has(x.th)));
+  if(!pool.length)pool=SCEN.filter(x=>CEFR.indexOf(x.lv)<=cur&&(S.dlg[x.id]||0)<70);
+  if(!pool.length)pool=SCEN.filter(x=>CEFR.indexOf(x.lv)===cur);
+  const d=pool[(new Date().getDate()+(S.xp%3))%pool.length];
   startQuiz({id:'mix',title:'Revisão',items:null},{n:6,next:()=>pronDrill({n:3,next:()=>startDialog(d,{next:()=>{S.daily.lesson=true;award(20);save();dailyDone()}})})});
 }
 function dailyDone(){
@@ -806,17 +931,37 @@ function game(){
    SITUAÇÕES + CONVERSA ROTEIRIZADA
    ============================================================ */
 function situ(){
-  shell(`<div class="top"><h2>Situações</h2></div><p class="mut" style="margin-top:0">A professora faz o papel de quem te atende. Você responde falando ou digitando, e ela corrige na hora.</p>
-  ${SITS.map(s=>`<div class="sec">${s.ic} ${s.th}</div><div class="list">${s.list.map(d=>{const p=S.dlg[d.id]||0;return `<button class="unit ${p>=80?'done':''}" data-d="${d.id}"><div class="em">${s.ic}</div><div style="flex:1"><h3>${esc(d.t)}</h3><small>${d.turns.length} falas${p?` · melhor ${p}%`:''}</small><div class="bar"><i style="width:${p}%"></i></div></div></button>`}).join('')}</div>`).join('')}`,'situ');
-  app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>startDialog(SITS.flatMap(s=>s.list).find(d=>d.id===b.dataset.d)));
+  const cur=curLevelIdx();
+  shell(`<div class="top"><h2>Cenários</h2><span class="chip">Nível ${CEFR[cur]}</span></div>
+  <p class="mut" style="margin-top:0">Eu crio a situação e faço uma pergunta. Você responde e eu corrijo. Complete 3 cenários de um nível, com 70% ou mais, para liberar o próximo.</p>
+  ${CEFR.map((l,i)=>{
+    const st=lvStats(l),open=unlocked(i);
+    let body;
+    if(open)body=`<div class="list">${st.list.map(d=>{const p=S.dlg[d.id]||0;return `<button class="unit ${p>=70?'done':''}" data-d="${d.id}"><div class="em">${d.ic}</div><div style="flex:1"><h3>${esc(d.t)}</h3><small>${d.th} · ${d.turns.length} perguntas${p?` · melhor ${p}%`:''}</small><div class="bar"><i style="width:${p}%"></i></div></div></button>`}).join('')}</div>`;
+    else{const p=lvStats(CEFR[i-1]);body=`<div class="note">Faltam ${Math.max(0,p.need-p.done)} cenário(s) do ${CEFR[i-1]} com 70% ou mais para liberar.<div style="margin-top:8px"><button class="btn sec2 sm" data-skip="${i}">Já sei esse nível, liberar</button></div></div>`}
+    return `<div class="sec">${l} · ${LVNAME[l]} ${open?'':'🔒'}<span style="float:right;text-transform:none">${st.done}/${st.list.length} concluídos</span></div>${body}`;
+  }).join('')}`,'situ');
+  app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>scenIntro(SCEN.find(d=>d.id===b.dataset.d)));
+  app.querySelectorAll('[data-skip]').forEach(b=>b.onclick=()=>{S.level=CEFR[+b.dataset.skip];save();toast('Nível '+S.level+' liberado');situ()});
+}
+function scenIntro(d){
+  view='scen';
+  full(`<button class="back" id="b">← Voltar</button>
+   <div class="hero"><div style="font-size:42px">${d.ic}</div><h2>${esc(d.t)}</h2><p><b>${d.lv}</b> · ${esc(LVNAME[d.lv])}</p><p style="color:var(--txt)">${esc(d.ctx)}</p></div>
+   <p class="mut">Vou fazer ${d.turns.length} perguntas. Você responde falando ou digitando e eu corrijo na hora.</p>
+   <button class="btn" id="go">Começar o cenário</button>
+   ${S.api.url?`<button class="btn sec2" id="ai" style="margin-top:10px">💬 Conversar livremente neste cenário (IA)</button>`:''}`);
+  $('#b').onclick=()=>go('situ');
+  $('#go').onclick=()=>startDialog(d);
+  const ai=$('#ai');if(ai)ai.onclick=()=>chat(d.t,d.ctx);
 }
 let D=null;
 function tBubble(t,pt){
   return `<div class="b t"><div>${esc(t)} <button class="sp" data-say="${esc(t)}">🔊</button></div>${pt?`<div class="tr ${S.pt==='en'?'hid':''}">${esc(pt)}</div>`:''}</div>`;
 }
 function startDialog(d,opt={}){
-  D={d,i:0,tries:0,scores:[],log:[],opt,phase:'ask'};
-  D.log.push(`<div class="b f"><b>${esc(d.t)}</b>. Responda em inglês. Toque no microfone ou digite.</div>`);
+  D={d,i:0,tries:0,scores:[],log:[],opt,phase:'ask',lvBefore:curLevelIdx()};
+  D.log.push(`<div class="b f"><b>${esc(d.t)}</b> · ${esc(d.ctx)}</div>`);
   dlgTurn();
 }
 function dlgTurn(){
@@ -827,7 +972,7 @@ function dlgTurn(){
 }
 function dlgDraw(){
   const d=D.d,t=d.turns[D.i];view='dlg';
-  full(`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${D.i/d.turns.length*100}%"></i></div></div>
+  full(`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${D.i/d.turns.length*100}%"></i></div><span class="chip">${d.lv}</span></div>
    <div class="chatlog" id="cl">${D.log.join('')}</div>
    <div class="dock">${D.phase==='ask'?`
      <div class="cue">🎯 ${esc(t.cue)}</div>
@@ -836,46 +981,49 @@ function dlgDraw(){
      <div class="row"><button class="btn sec2 sm" id="hint">💡 Dica</button><button class="btn sec2 sm" id="skip">Pular</button></div>`
      :`<button class="btn" id="nx">${D.i===d.turns.length-1?'Ver resultado':'Continuar'}</button>`}</div>`);
   const cl=$('#cl');if(cl&&cl.lastElementChild)cl.lastElementChild.scrollIntoView({block:'end'});
-  $('#x').onclick=()=>{if(confirm('Sair da conversa?')){stopListen();D=null;go('situ')}};
+  $('#x').onclick=()=>{if(confirm('Sair do cenário?')){stopListen();D=null;go('situ')}};
   if(D.phase==='ask'){
     bindMic($('#mic'),alts=>dlgAnswer(alts));
     const send=()=>{const v=$('#tx').value.trim();if(v)dlgAnswer([v])};
     $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter')send()};
-    $('#hint').onclick=()=>{D.log.push(`<div class="b f">💡 Dica: <b>${esc(t.a[0])}</b> <button class="sp" data-say="${esc(t.a[0])}">🔊</button></div>`);dlgDraw()};
-    $('#skip').onclick=()=>{D.scores.push(0);D.log.push(`<div class="b f">Resposta: <b>${esc(t.a[0])}</b></div>`);D.phase='fb';dlgDraw()};
+    $('#hint').onclick=()=>{D.log.push(`<div class="b f">💡 Uma resposta possível: <b>${esc(t.a[0])}</b> <button class="sp" data-say="${esc(t.a[0])}">🔊</button></div>`);dlgDraw()};
+    $('#skip').onclick=()=>{D.scores.push(0);D.log.push(`<div class="b f">Resposta possível: <b>${esc(t.a[0])}</b></div>`);D.phase='fb';dlgDraw()};
   }else{
     $('#nx').onclick=()=>{D.i++;if(D.i>=D.d.turns.length)dlgFinish();else dlgTurn()};
   }
 }
 function dlgAnswer(alts){
-  const t=D.d.turns[D.i],r=evalAns(alts,t.a),g=grade(r.score),m=M();
+  const t=D.d.turns[D.i],r=evalAns(alts,t.a),li=CEFR.indexOf(D.d.lv),g=grade(r.score,li),m=M();
   bump('speaks');
   D.log.push(`<div class="b u">${wordsHtml(r)}<div class="tr">${Math.round(r.score*100)}%</div></div>`);
   let fb=esc(pick(m[g]));
-  if(g!=='ok')fb+=`<div class="cor">Forma certa: <b>${esc(r.target)}</b> <button class="sp" data-say="${esc(r.target)}">🔊</button></div>`;
+  if(g!=='ok')fb+=`<div class="cor">Uma forma natural: <b>${esc(r.target)}</b> <button class="sp" data-say="${esc(r.target)}">🔊</button></div>`;
+  else if(li>=2&&t.a.length>1){const alt=t.a.find(x=>x!==r.target);fb+=`<div class="cor">Outra forma de dizer: <b>${esc(alt)}</b></div>`}
   D.log.push(`<div class="b t">${fb}</div>`);
   D.tries++;
-  if(g==='ok'||D.tries>=2){D.scores.push(r.score);D.phase='fb';if(g==='ok')award(10);else if(g==='almost')award(5)}
+  if(g==='ok'||D.tries>=2){D.scores.push(r.score);D.phase='fb';if(g==='ok')award(10+li*2);else if(g==='almost')award(5)}
   dlgDraw();
   if(g==='ok')speak(r.target);
 }
 function dlgFinish(){
   const sc=D.scores,avg=sc.reduce((a,b)=>a+b,0)/sc.length,pct=Math.round(avg*100),d=D.d,opt=D.opt,m=M();
   S.dlg[d.id]=Math.max(S.dlg[d.id]||0,pct);bump('convos');award(10);
-  full(`<div class="res"><div class="big">${pct>=80?'🏆':pct>=60?'😐':'💩'}</div><h2>${pct}% na conversa</h2>
+  const now=curLevelIdx(),up=now>D.lvBefore,nx=nextScen();
+  full(`<div class="res"><div class="big">${up?'🔓':pct>=80?'🏆':pct>=60?'😐':'💩'}</div><h2>${pct}% no cenário</h2>
+    ${up?`<p style="font-weight:800;color:var(--ok)">Novo nível liberado: ${CEFR[now]} · ${esc(LVNAME[CEFR[now]])}</p>`:''}
     <p class="mut" style="max-width:420px;margin:10px auto">“${esc(pick(pct<60?m.low:m.fin))}”</p>
-    <div class="stats"><span class="chip">⭐ +10 XP</span><span class="chip">${esc(d.t)}</span></div>
-    ${opt.next?`<button class="btn" id="nx">Continuar</button>`:`<div class="row" style="margin-top:20px"><button class="btn sec2" id="h">Situações</button><button class="btn" id="again">Repetir</button></div>`}</div>`);
+    <div class="stats"><span class="chip">${esc(d.t)}</span><span class="chip">Nível ${CEFR[now]}</span></div>
+    ${opt.next?`<button class="btn" id="nx">Continuar</button>`:`<div class="row" style="margin-top:20px"><button class="btn sec2" id="h">Cenários</button><button class="btn sec2" id="again">Repetir</button></div>${nx?`<button class="btn" id="nxs" style="margin-top:10px">Próximo: ${esc(nx.t)}</button>`:''}`}</div>`);
   if(opt.next)$('#nx').onclick=opt.next;
-  else{$('#h').onclick=()=>go('situ');$('#again').onclick=()=>startDialog(d)}
+  else{$('#h').onclick=()=>go('situ');$('#again').onclick=()=>startDialog(d);const b=$('#nxs');if(b)b.onclick=()=>scenIntro(nx)}
 }
 
 /* ============================================================
    TREINO DE PRONÚNCIA
    ============================================================ */
 function phrasePool(){
-  const p=[];
-  SITS.forEach(s=>s.list.forEach(d=>d.turns.forEach(t=>p.push({en:t.a[0],pt:t.cue.replace(/^[^“]*“|”.*$/g,'')}))));
+  const cur=curLevelIdx(),p=[];
+  SCEN.filter(d=>CEFR.indexOf(d.lv)<=cur).forEach(d=>d.turns.forEach(t=>{const q=t.cue.match(/“([^”]+)”/);p.push({en:t.a[0],pt:q?q[1]:t.cue})}));
   UNITS.find(u=>u.id==='frases').items.forEach(i=>p.push({en:i[0].replace('...',''),pt:i[1]}));
   return p;
 }
@@ -930,26 +1078,30 @@ function pronEnd(){
    ============================================================ */
 const TOPICS=['Qualquer assunto','Viagem','Comida','Trabalho','Família','Filmes e música','Rotina'];
 let C=null;
+const SCEN_IDEAS=['Estou no aeroporto e perdi a conexão','Entrevista de emprego numa startup','Pedindo comida num restaurante cheio','Reclamando do barulho com o vizinho','Apresentando um projeto para clientes'];
 function conversar(){
   const has=!!S.api.url;
-  shell(`<div class="top"><h2>Conversar</h2></div>
-  ${has?`<div class="hero"><h2>💬 Conversa livre</h2><p>Escolha um assunto e fale com a ${M().ic} professora de verdade. Ela responde em voz e corrige o que você errou.</p></div>
-    <div class="sec">Assunto</div><div class="chipset" id="tp">${TOPICS.map((t,i)=>`<button data-t="${i}" class="${i===0?'on':''}">${t}</button>`).join('')}</div>
-    <button class="btn" id="go">Começar a conversa</button>`
-  :`<div class="hero"><h2>💬 Conversa livre com IA</h2><p>Aqui você fala de qualquer assunto e a professora responde na hora. Isso precisa de um servidor próprio com uma chave de IA, que você liga uma vez só.</p></div>
+  shell(`<div class="top"><h2>Conversar</h2><span class="chip">Nível ${CEFR[curLevelIdx()]}</span></div>
+  ${has?`<div class="hero"><h2>💬 Crie seu cenário</h2><p>Descreva onde você está e eu faço o papel de quem está com você. Eu pergunto, você responde, eu corrijo, no seu nível.</p></div>
+    <input class="tx" id="sc" placeholder="Ex.: estou no aeroporto e perdi o voo" maxlength="140" autocomplete="off">
+    <div class="chipset" id="ex">${SCEN_IDEAS.map((t,i)=>`<button data-i="${i}">${esc(t)}</button>`).join('')}</div>
+    <button class="btn" id="go" style="margin-bottom:10px">Começar o cenário</button>
+    <button class="btn sec2" id="free">Só bater papo (qualquer assunto)</button>`
+  :`<div class="hero"><h2>💬 Cenários criados por você</h2><p>Aqui você descreve qualquer situação (“estou no aeroporto”, “entrevista de emprego”) e eu faço o papel de quem está com você, no seu nível. Isso precisa de um servidor próprio com uma chave de IA, que você liga uma vez só.</p></div>
     <div class="card2"><b>Como ligar</b><ol><li>Siga o passo a passo do arquivo <b>servidor/LEIA-ME.md</b>.</li><li>Cole o endereço do servidor em <b>Perfil → Conversa livre</b>.</li></ol></div>
     <button class="btn sec2" id="pf" style="margin-bottom:10px">Ir para Perfil</button>
-    <button class="btn" id="st">Enquanto isso, praticar situações</button>`}`,'conversar');
+    <button class="btn" id="st">Enquanto isso, praticar os cenários prontos</button>`}`,'conversar');
   if(has){
-    let topic=0;
-    app.querySelectorAll('#tp button').forEach(b=>b.onclick=()=>{topic=+b.dataset.t;app.querySelectorAll('#tp button').forEach(x=>x.classList.toggle('on',x===b))});
-    $('#go').onclick=()=>chat(topic?TOPICS[topic]:'');
+    app.querySelectorAll('#ex button').forEach(b=>b.onclick=()=>{$('#sc').value=SCEN_IDEAS[+b.dataset.i]});
+    $('#go').onclick=()=>{const v=$('#sc').value.trim();if(!v)return toast('Descreva o cenário primeiro.');chat('',v)};
+    $('#free').onclick=()=>chat('','');
   }else{$('#pf').onclick=()=>go('perfil');$('#st').onclick=()=>go('situ')}
 }
-function chat(topic){
-  C={msgs:[],log:[],busy:false,topic};
+function chat(topic,scen){
+  C={msgs:[],log:[],busy:false,topic:topic||'',scen:scen||''};
   view='chat';
-  full(`<div class="q-top"><button class="x" id="x">✕</button><b>${M().ic} ${esc(M().nome)}${topic?' · '+esc(topic):''}</b></div>
+  full(`<div class="q-top"><button class="x" id="x">✕</button><b>${M().ic} ${esc(topic||(scen?'Cenário':'Bate-papo'))} · ${CEFR[curLevelIdx()]}</b></div>
+   ${scen?`<div class="b f" style="margin-bottom:10px">${esc(scen)}</div>`:''}
    <div class="chatlog" id="cl"></div>
    <div class="dock"><button class="mic" id="mic">🎙️ Falar</button>
    <div class="send"><input class="tx" id="tx" placeholder="ou digite em inglês…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div></div>`);
@@ -974,7 +1126,7 @@ async function askAI(text){
   C.busy=true;chatDraw();
   try{
     const r=await fetch(S.api.url,{method:'POST',headers:{'Content-Type':'application/json','X-App-Token':S.api.token||''},
-      body:JSON.stringify({messages:C.msgs.slice(-12),mood:moodKey(),adult:!!S.adult,level:S.level||'A0',pt:S.pt,name:S.name,topic:C.topic})});
+      body:JSON.stringify({messages:C.msgs.slice(-12),mood:moodKey(),adult:!!S.adult,level:CEFR[curLevelIdx()],pt:S.pt,name:S.name,topic:C.topic,scenario:C.scen||''})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(j.error||('erro '+r.status));
     C.msgs.push({role:'assistant',content:j.reply});
