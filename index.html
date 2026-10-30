@@ -469,15 +469,36 @@ const MISSIONS=[{k:'words',n:10,t:'Acertar 10 palavras'},{k:'speaks',n:5,t:'Fala
 const KEY='isf_v1';
 let S;
 const today=()=>new Date().toISOString().slice(0,10);
-function load(){
-  try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+function load(raw){
+  try{S=JSON.parse(raw===undefined?localStorage.getItem(KEY):raw)}catch(e){}
   S=Object.assign({v:2,name:'',level:'',mood:'calma',adult:false,pt:'pt',voice:true,xp:0,streak:0,last:'',words:{},units:{},dlg:{},
     daily:{d:'',words:0,speaks:0,convos:0,lesson:false,claimed:[]},api:{url:'',token:''},onboarded:false,voiceMode:'all',theme:'light',goal:0,months:3,minutes:10,weekly:0,interests:[]},S||{});
   if((S.v||0)<3){S.onboarded=false;S.v=3}
   if(!S.daily||S.daily.d!==today())S.daily={d:today(),words:0,speaks:0,convos:0,lesson:false,claimed:[]};
   if(!MOODS[S.mood])S.mood='calma';
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let idbT=null,STG_OK=true;
+function idbOpen(cb){try{const r=indexedDB.open('isf',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onsuccess=()=>cb(r.result);r.onerror=()=>cb(null)}catch(e){cb(null)}}
+function idbGet(){return new Promise(res=>idbOpen(db=>{if(!db)return res(null);try{const g=db.transaction('k').objectStore('k').get('s');g.onsuccess=()=>res(g.result||null);g.onerror=()=>res(null)}catch(e){res(null)}}))}
+function idbSet(v){idbOpen(db=>{if(!db)return;try{const t=db.transaction('k','readwrite').objectStore('k');if(v)t.put(v,'s');else t.delete('s')}catch(e){}})}
+function save(){let j=null;try{j=JSON.stringify(S);localStorage.setItem(KEY,j)}catch(e){}if(j){clearTimeout(idbT);idbT=setTimeout(()=>idbSet(j),250)}}
+function storageProbe(){try{localStorage.setItem('isf_t','1');STG_OK=localStorage.getItem('isf_t')==='1';localStorage.removeItem('isf_t')}catch(e){STG_OK=false}}
+const encodeS=()=>btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+const decodeS=c=>decodeURIComponent(escape(atob(c)));
+async function boot(){
+  let raw=null;try{raw=localStorage.getItem(KEY)}catch(e){}
+  if(!raw){raw=await idbGet();if(raw){try{localStorage.setItem(KEY,raw)}catch(e){}}}
+  const m=location.hash.match(/^#r=([^&]+)/);
+  let restored=false;
+  if(m){try{raw=decodeS(decodeURIComponent(m[1]));JSON.parse(raw);try{localStorage.setItem(KEY,raw)}catch(e){}idbSet(raw);restored=true}catch(e){}
+    try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+  storageProbe();
+  load(raw===null?undefined:raw);
+  applyTheme();
+  if(restored)toast('Progresso restaurado');
+  hoje();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+}
 const moodKey=()=>(S.mood==='durona'&&!S.adult)?'direta':S.mood;
 const M=()=>MOODS[moodKey()];
 const lvl=()=>Math.floor(Math.sqrt(S.xp/40))+1;
@@ -671,10 +692,11 @@ function planChart(){
     <text x="30" y="166" font-size="12" fill="var(--mut)">hoje</text><text x="296" y="166" font-size="12" fill="var(--txt)" font-weight="700" text-anchor="end">${esc(planDate())}</text></svg></div>`;
 }
 let OB;
-function onboarding(startAt){OB={i:startAt||0};obStep()}
+function onboarding(startAt){OB={i:startAt===undefined?Math.min(S.obi||0,9):startAt};obStep()}
 function obStep(){
   view='ob';
   const i=OB.i,nx=()=>{OB.i++;obStep()},st={v:0};
+  S.obi=i;save();
   if(i===0){
     st.v=S.voiceMode==='drill'?1:0;
     obShell(asking('Antes de começar: quer que eu fale em voz alta?','calma')+optsHtml(VOICE_OPTS,st.v),()=>{S.voiceMode=st.v===1?'drill':'all';save();nx()});
@@ -715,7 +737,8 @@ function obStep(){
     moodStep();
   }else{
     full(`<div class="res" style="padding-top:90px">${mascot(moodKey(),130)}<h2 style="margin-top:14px">Só um instante, estou montando sua lição…</h2></div>`);
-    setTimeout(()=>{S.onboarded=true;save();hoje()},1800);
+    S.onboarded=true;save();
+    setTimeout(()=>{toast('Seus dados ficaram salvos neste aparelho');hoje()},1600);
   }
 }
 function speakPT(t){
@@ -761,6 +784,14 @@ function moodSwitch(){
 }
 function bindMoodSwitch(after){app.querySelectorAll('#msw [data-m]').forEach(b=>b.onclick=()=>setMood(b.dataset.m,after))}
 
+function warnHtml(){
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  let h='';
+  if(!STG_OK)h+=`<div class="tip" style="background:var(--badbg);border-color:var(--bad)"><b>⚠️ Este navegador não está salvando seus dados</b><br>Isso acontece em aba anônima ou dentro de outros apps. Abra o endereço no Safari ou no Chrome normal.</div>`;
+  if(ios&&!standalone&&!S.iosTipDone)h+=`<div class="tip"><b>📌 Para não perder seu progresso</b><br>Toque em <b>Compartilhar → Adicionar à Tela de Início</b> e abra sempre pelo ícone.<button class="lnk" id="iosx">Entendi</button></div>`;
+  return h;
+}
 function hoje(){
   if(!S.onboarded)return onboarding();
   const sn=streakNow(),m=M(),nx=nextScen();
@@ -769,6 +800,7 @@ function hoje(){
   shell(`
   <div class="top"><div class="logo">Inglês <b>Sem Frescura</b></div><div class="chips"><span class="chip">🔥 ${sn}</span><span class="chip">⭐ ${S.xp}</span></div></div>
   ${(!standalone&&deferredInstall)?`<div class="install"><span>Instale o app na tela inicial</span><button class="btn sm" id="inst">Instalar</button></div>`:''}
+  ${warnHtml()}
   ${S.tipDone?'':`<div class="tip"><b>👋 Comece por aqui</b><br>Toque em <b>Conversa aleatória</b>. Eu pergunto, você responde (falando ou digitando) e eu corrijo na hora. Escolha abaixo o meu jeito de corrigir.<button class="lnk" id="tipx">Entendi</button></div>`}
   <div class="hero"><div class="herorow">${mascot(moodKey(),92)}<div><h2>${S.name?esc(S.name)+'!':'Oi!'}</h2><p class="quote">“${esc(m.hello)}”</p></div></div></div>
   <div class="sec" style="margin-top:0">Jeito da professora</div>${moodSwitch()}
@@ -783,6 +815,7 @@ function hoje(){
   <div class="card2" style="padding:4px 14px">${MISSIONS.map(x=>{const v=Math.min(S.daily[x.k]||0,x.n),d=v>=x.n;return `<div class="mission ${d?'d':''}"><span>${d?'✅':'🎯'}</span><span style="min-width:150px">${x.t}</span><div class="bar ${d?'g':''}"><i style="width:${v/x.n*100}%"></i></div><span>${v}/${x.n}</span></div>`}).join('')}</div>`,'hoje');
   bindMoodSwitch(()=>hoje());
   const inst=$('#inst');if(inst)inst.onclick=async()=>{deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;hoje()};
+  const ix=$('#iosx');if(ix)ix.onclick=()=>{S.iosTipDone=true;save();hoje()};
   const tx=$('#tipx');if(tx)tx.onclick=()=>{S.tipDone=true;save();hoje()};
   $('#rc').onclick=rcStart;
   $('#a-scen').onclick=()=>nx?scenIntro(nx):go('situ');
@@ -1189,7 +1222,27 @@ function perfil(){
     <input class="tx" id="at" type="password" placeholder="Senha do servidor" value="${esc(S.api.token)}" style="margin-bottom:8px;font-size:15px">
     <div class="row"><button class="btn sec2 sm" id="sv">Salvar</button><button class="btn sec2 sm" id="ts">Testar conexão</button></div>
   </div>
+  <div class="sec">Salvar meu progresso</div>
+  <div class="set">
+    <p class="mut small" style="margin:0 0 8px">Seus dados ficam salvos neste aparelho. Para levar para outro navegador ou aparelho, copie o link de acesso e abra nele.</p>
+    <div class="row"><button class="btn sec2 sm" id="bk">Copiar link de acesso</button><button class="btn sec2 sm" id="rs">Restaurar</button></div>
+    <small class="mut" style="margin-top:8px">Salvamento: ${STG_OK?'funcionando':'bloqueado neste navegador'} · ${(matchMedia('(display-mode: standalone)').matches||navigator.standalone)?'app instalado':'aberto no navegador'}</small>
+  </div>
   <button class="btn bad" id="reset" style="margin-top:8px">Apagar todo o progresso</button>`,'perfil');
+  $('#bk').onclick=async()=>{
+    const link=location.origin+location.pathname+'#r='+encodeURIComponent(encodeS());
+    try{await navigator.clipboard.writeText(link);toast('Link copiado')}
+    catch(e){const md=modal(`<h2>Seu link de acesso</h2><p>Copie o texto abaixo e guarde. Abrindo esse link, seu progresso volta.</p><textarea class="tx" id="lk" rows="5" readonly style="width:100%">${esc(link)}</textarea><button class="btn" id="ok" style="margin-top:10px">Fechar</button>`);md.querySelector('#lk').select();md.querySelector('#ok').onclick=()=>md.remove()}
+  };
+  $('#rs').onclick=()=>{
+    const md=modal(`<h2>Restaurar progresso</h2><p>Cole o link de acesso (ou só o código) que você copiou.</p><textarea class="tx" id="lk" rows="5" style="width:100%"></textarea><div class="row" style="margin-top:10px"><button class="btn sec2" id="no">Cancelar</button><button class="btn" id="ok">Restaurar</button></div>`);
+    md.querySelector('#no').onclick=()=>md.remove();
+    md.querySelector('#ok').onclick=()=>{
+      let v=md.querySelector('#lk').value.trim();const k=v.indexOf('#r=');if(k>=0)v=v.slice(k+3);
+      try{const raw=decodeS(decodeURIComponent(v));JSON.parse(raw);localStorage.setItem(KEY,raw);idbSet(raw);md.remove();load(raw);applyTheme();toast('Progresso restaurado');go('hoje')}
+      catch(e){toast('Código inválido')}
+    };
+  };
   bindMoodPicker(()=>perfil());
   $('#nm').onchange=e=>{S.name=e.target.value.trim();save()};
   $('#sp1').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.pt=v;save();perfil()};
@@ -1207,7 +1260,7 @@ function perfil(){
       toast(r.ok?'Conexão OK ✅':'Falhou: '+(j.error||r.status));
     }catch(e){toast('Falhou: '+e.message)}
   };
-  $('#reset').onclick=()=>{if(confirm('Apagar tudo mesmo? Vai recomeçar do zero.')){localStorage.removeItem(KEY);load();hoje()}};
+  $('#reset').onclick=()=>{if(confirm('Apagar tudo mesmo? Vai recomeçar do zero.')){localStorage.removeItem(KEY);idbSet(null);load();applyTheme();hoje()}};
 }
 
 /* ============================================================
@@ -1395,7 +1448,8 @@ function rcEnd(){
 /* ============================================================
    INÍCIO
    ============================================================ */
-load();applyTheme();hoje();
+boot();
+addEventListener('hashchange',()=>{if(/^#r=/.test(location.hash))location.reload()});
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 </body>
