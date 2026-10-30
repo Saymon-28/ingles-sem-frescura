@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inglês Sem Frescura</title>
+<meta name="description" content="Aprenda inglês do zero com um professor que não tem paciência pra você.">
+<meta name="theme-color" content="#14110f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --bg:#14110f;--card:#1f1a17;--card2:#2a231f;--line:#3a312b;
+  --txt:#f5ede6;--mut:#a89b90;--acc:#ff5a36;--acc2:#ffb020;
+  --ok:#3ecf72;--bad:#ff4d5e;--r:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+#app{max-width:680px;margin:0 auto;min-height:100%;padding:16px 16px calc(24px + env(safe-area-inset-bottom));position:relative}
+h1,h2,h3{margin:0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.logo{font-weight:900;font-size:22px;letter-spacing:-.5px}
+.logo b{color:var(--acc)}
+.chips{display:flex;gap:8px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-weight:700;font-size:14px}
+.hero{background:linear-gradient(135deg,#3a1a10,#1f1a17);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.hero p{margin:6px 0 0;color:var(--mut)}
+.hero .quote{color:var(--txt);font-style:italic;margin-top:8px}
+.units{display:grid;gap:10px}
+.unit{display:flex;align-items:center;gap:14px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.unit:active{transform:scale(.99)}
+.unit .em{font-size:30px;width:52px;height:52px;display:grid;place-items:center;background:var(--card2);border-radius:14px;flex:none}
+.unit h3{font-size:17px}
+.unit small{color:var(--mut)}
+.bar{height:6px;border-radius:9px;background:var(--card2);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:9px;transition:width .3s}
+.unit.done .bar i{background:var(--ok)}
+.btn{display:block;width:100%;padding:14px;border-radius:14px;font-weight:800;font-size:16px;background:var(--acc);color:#fff;text-align:center}
+.btn.sec{background:var(--card2);border:1px solid var(--line)}
+.btn.ok{background:var(--ok);color:#06210f}
+.btn.bad{background:var(--bad);color:#fff}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:10px}
+.back{color:var(--mut);font-weight:700;padding:6px 0}
+.q-top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.q-top .bar{flex:1;height:10px;margin:0}
+.x{font-size:22px;color:var(--mut);padding:4px 8px}
+.prompt{color:var(--mut);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.word{font-size:30px;font-weight:900;margin:0 0 4px}
+.pron{color:var(--acc2);font-weight:600}
+.speak{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--line);font-size:20px;vertical-align:middle;margin-left:8px}
+.opts{display:grid;gap:10px;margin:22px 0}
+.opt{padding:15px;border-radius:14px;background:var(--card);border:2px solid var(--line);font-weight:700;text-align:left;font-size:17px}
+.opt.sel{border-color:var(--acc2)}
+.opt.right{border-color:var(--ok);background:#12301f}
+.opt.wrong{border-color:var(--bad);background:#34141a}
+.opts.locked .opt{pointer-events:none}
+input.type{width:100%;padding:15px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--txt);font-size:20px;margin:22px 0;outline:none}
+input.type:focus{border-color:var(--acc2)}
+.sheet{position:fixed;left:0;right:0;bottom:0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));border-top:2px solid;animation:up .2s ease-out}
+.sheet>div{max-width:680px;margin:0 auto}
+.sheet.ok{background:#12301f;border-color:var(--ok)}
+.sheet.bad{background:#34141a;border-color:var(--bad)}
+.sheet h3{font-size:18px;margin-bottom:4px}
+.sheet p{margin:0 0 12px}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.card{perspective:900px;margin:10px 0 16px}
+.card .face{min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;gap:6px;width:100%}
+.card .face .big{font-size:36px;font-weight:900}
+.card .hint{color:var(--mut);font-size:13px;margin-top:12px}
+.res{text-align:center;padding-top:30px}
+.res .big{font-size:64px}
+.res .stats{display:flex;justify-content:center;gap:10px;margin:18px 0}
+.set{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.set label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px}
+.seg button{padding:7px 12px;border-radius:10px;font-weight:700;font-size:14px;color:var(--mut)}
+.seg button.on{background:var(--acc);color:#fff}
+.install{background:var(--card2);border:1px dashed var(--acc);border-radius:var(--r);padding:12px;margin-bottom:16px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.install .btn{width:auto;padding:10px 16px}
+.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.mut{color:var(--mut)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =========================== DADOS =========================== */
+const UNITS = [
+ {id:'oi', em:'👋', title:'Oi, seu zero à esquerda', sub:'Cumprimentos',
+  items:[
+   ['Hello','Olá','rê-lôu'],['Hi','Oi','rái'],['Good morning','Bom dia','gúd mór-nin'],
+   ['Good afternoon','Boa tarde','gúd é-fter-núun'],['Good night','Boa noite','gúd náit'],
+   ['Goodbye','Tchau','gud-bái'],['Please','Por favor','pliiz'],['Thank you','Obrigado','thénk iú'],
+   ['Sorry','Desculpa','sóri'],['Yes','Sim','iés'],['No','Não','nôu'],['See you later','Até mais','sii iú lêi-ter']]},
+ {id:'tobe', em:'🧍', title:'Eu, você e o verbo to be', sub:'Pronomes e ser/estar',
+  items:[
+   ['I','Eu','ái'],['You','Você','iú'],['He','Ele','rri'],['She','Ela','chi'],['We','Nós','uí'],['They','Eles / Elas','dêi'],
+   ['I am','Eu sou / estou','ái ém'],['You are','Você é / está','iú ar'],['He is','Ele é / está','rri iz'],
+   ['She is','Ela é / está','chi iz'],['We are','Nós somos / estamos','uí ar'],['They are','Eles são / estão','dêi ar']]},
+ {id:'num', em:'🔢', title:'Números (até você contar)', sub:'1 a 10',
+  items:[
+   ['One','Um','uân'],['Two','Dois','tuú'],['Three','Três','thrii'],['Four','Quatro','fór'],['Five','Cinco','fáiv'],
+   ['Six','Seis','siks'],['Seven','Sete','sé-ven'],['Eight','Oito','êit'],['Nine','Nove','náin'],['Ten','Dez','tén']]},
+ {id:'cor', em:'🎨', title:'Cores (nem daltônico erra)', sub:'Cores básicas',
+  items:[
+   ['Red','Vermelho','réd'],['Blue','Azul','blúu'],['Green','Verde','grin'],['Yellow','Amarelo','iê-lôu'],
+   ['Black','Preto','blék'],['White','Branco','uáit'],['Orange','Laranja','ó-rinj'],['Pink','Rosa','pink'],
+   ['Purple','Roxo','pér-pol'],['Brown','Marrom','bráun']]},
+ {id:'comida', em:'🍞', title:'Comida (pra parar de passar fome)', sub:'Alimentos',
+  items:[
+   ['Water','Água','uó-ter'],['Bread','Pão','bréd'],['Milk','Leite','mílk'],['Coffee','Café','kó-fi'],
+   ['Rice','Arroz','ráis'],['Beans','Feijão','biinz'],['Meat','Carne','miit'],['Chicken','Frango','tchí-kin'],
+   ['Apple','Maçã','é-pol'],['Egg','Ovo','égg']]},
+ {id:'familia', em:'👨‍👩‍👧', title:'Família (a sua inclusive)', sub:'Pessoas próximas',
+  items:[
+   ['Mother','Mãe','mâ-der'],['Father','Pai','fá-der'],['Brother','Irmão','brâ-der'],['Sister','Irmã','sís-ter'],
+   ['Son','Filho','sân'],['Daughter','Filha','dó-ter'],['Grandmother','Avó','grén-mâ-der'],
+   ['Grandfather','Avô','grén-fá-der'],['Friend','Amigo(a)','frénd'],['Husband','Marido','rrâz-bend'],['Wife','Esposa','uáif']]},
+ {id:'verbos', em:'🏃', title:'Verbos (mexa essa bunda)', sub:'Ações do dia a dia',
+  items:[
+   ['Eat','Comer','iit'],['Drink','Beber','drink'],['Sleep','Dormir','sliip'],['Go','Ir','gôu'],['Want','Querer','uónt'],
+   ['Have','Ter','rrév'],['Like','Gostar','láik'],['Work','Trabalhar','uérk'],['Speak','Falar','spiik'],['Love','Amar','lâv']]},
+ {id:'frases', em:'🆘', title:'Frases de sobrevivência', sub:'Pra não morrer no exterior',
+  items:[
+   ['How are you?','Como você está?','rráu ar iú'],['My name is...','Meu nome é...','mái nêim iz'],
+   ['Where is the bathroom?','Onde fica o banheiro?','uér iz dhê béth-rum'],['I don\'t understand','Eu não entendo','ái dôunt ân-der-sténd'],
+   ['How much is it?','Quanto custa?','rráu mâtch iz it'],['I need help','Preciso de ajuda','ái niid rrélp'],
+   ['Speak slowly, please','Fale devagar, por favor','spiik slôu-li pliiz'],['I am hungry','Estou com fome','ái ém rrân-gri'],
+   ['I love you','Eu te amo','ái lâv iú'],['Nice to meet you','Prazer em conhecer','náis tu miit iú']]}
+];
+
+/* ======================= INSULTOS ============================ */
+const ROAST = {
+ leve:{
+  right:['Acertou! Não esperava isso de você.','Boa! Até um papagaio aprende, né?','Parabéns, você não é um caso perdido.','Certo. Anota aí que hoje foi sorte de principiante.','Mandou bem. Não se acostume.'],
+  wrong:['Errou! Respira e tenta de novo, campeão da confusão.','Quase… quase na outra galáxia.','Isso foi um chute, né? Dava pra ver de longe.','Erro feio. Mas a gente continua, bora.','Olha… foi uma tentativa. Vamos chamar assim.'],
+  fin:['Terminou. Nada mal pra quem começou do zero absoluto.','Acabou. Amanhã tem mais — e não faltando, hein.'],
+  low:['Resultado fraco. Vai estudar os cards antes de voltar.']
+ },
+ pesado:{
+  right:['Acertou, porra! Até que o cérebro funciona.','Caramba, um milagre! Acertou sem ajuda.','Certo. Não vai se achar, seu zé-ninguém.','Boa, caralho! Pena que foi a única.','Acertou. Sorte de burro é foda.'],
+  wrong:['ERROU, SUA ANTA! Presta atenção, caramba!','Que merda foi essa? Nem o Google Tradutor erra assim.','Porra, de novo? Seu cérebro tá de férias?','Errou feio, jumento. Releia o card, pelo amor de Deus.','Sério que você respondeu isso? Que vergonha alheia, cacete.','Burro não, né… mas tá tentando muito pra parecer.'],
+  fin:['Acabou, seu paspalho. Voltou melhor do que entrou — o que não era difícil.','Terminou. Continua assim e talvez eu pare de te xingar. Talvez.'],
+  low:['Isso foi um lixo, porra. Volta pros cards e estuda antes de me fazer perder tempo.']
+ }
+};
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+/* ========================= ESTADO ============================ */
+const KEY='isf_v1';
+let S;
+function load(){
+  try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  S=Object.assign({xp:0,streak:0,last:'',words:{},units:{},roast:'pesado',voice:true},S||{});
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const today=()=>new Date().toISOString().slice(0,10);
+function touchStreak(){
+  const t=today(); if(S.last===t)return;
+  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  S.streak = S.last===y ? S.streak+1 : 1; S.last=t;
+}
+function streakNow(){
+  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  return (S.last===today()||S.last===y)?S.streak:0;
+}
+
+/* ========================= ÁUDIO ============================= */
+let enVoice=null;
+function pickVoice(){
+  if(!('speechSynthesis' in window))return;
+  const v=speechSynthesis.getVoices();
+  enVoice=v.find(x=>/en[-_]US/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null;
+}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function speak(t){
+  if(!S.voice||!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t.replace('...',''));
+  u.lang='en-US';u.rate=.85;if(enVoice)u.voice=enVoice;
+  speechSynthesis.speak(u);
+}
+
+/* ========================== UTIL ============================= */
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const norm=s=>s.toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9' ]/g,'').replace(/\s+/g,' ').trim();
+const wordOf=(u,i)=>({unit:u.id,en:i[0],pt:i[1],pron:i[2]});
+const allWords=()=>UNITS.flatMap(u=>u.items.map(i=>wordOf(u,i)));
+
+/* ========================== HOME ============================= */
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;if(view==='home')home()});
+window.addEventListener('appinstalled',()=>{deferredInstall=null;if(view==='home')home()});
+let view='home';
+
+function home(){
+  view='home';
+  const sn=streakNow();
+  const msg=sn>=3?'Olha só, '+sn+' dias seguidos. Quem diria que você tinha disciplina.':
+            sn>0?'Voltou. Continua aí que o inglês não se aprende sozinho.':
+            'Bora começar, ou vai ficar só olhando a tela?';
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  app.innerHTML=`
+  <div class="top">
+    <div class="logo">Inglês <b>Sem Frescura</b></div>
+    <div class="chips"><span class="chip">🔥 ${sn}</span><span class="chip">⭐ ${S.xp}</span></div>
+  </div>
+  ${(!standalone&&deferredInstall)?`<div class="install"><span>Instale o app na tela inicial</span><button class="btn" id="inst">Instalar</button></div>`:''}
+  ${(!standalone&&!deferredInstall&&!isIOS)?`<div class="install mut"><span>Para salvar: menu do navegador ⋮ → <b>Instalar app</b> / <b>Adicionar à tela inicial</b>.</span></div>`:''}
+  ${(!standalone&&isIOS)?`<div class="install mut"><span>No Safari: botão Compartilhar → <b>Adicionar à Tela de Início</b>.</span></div>`:''}
+  <div class="hero"><h2>Inglês do zero, sem passar pano</h2><p class="quote">“${esc(msg)}”</p></div>
+  <div class="units">
+  ${UNITS.map((u,i)=>{
+    const p=S.units[u.id]||0;
+    return `<button class="unit ${p>=80?'done':''}" data-u="${i}">
+      <div class="em">${u.em}</div>
+      <div style="flex:1"><h3>${esc(u.title)}</h3><small>${esc(u.sub)} · ${u.items.length} palavras${p?` · melhor ${p}%`:''}</small>
+      <div class="bar"><i style="width:${p}%"></i></div></div>
+    </button>`}).join('')}
+  </div>
+  <div class="row" style="margin-top:16px">
+    <button class="btn sec" id="mix">🎲 Revisão mista</button>
+    <button class="btn sec" id="cfg">⚙️ Ajustes</button>
+  </div>`;
+  app.querySelectorAll('.unit').forEach(b=>b.onclick=()=>unitMenu(+b.dataset.u));
+  $('#mix').onclick=()=>startQuiz({id:'mix',title:'Revisão mista',items:null});
+  $('#cfg').onclick=settings;
+  const inst=$('#inst'); if(inst)inst.onclick=async()=>{deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;home()};
+}
+
+function settings(){
+  view='settings';
+  app.innerHTML=`
+  <button class="back" id="b">← Voltar</button>
+  <h2 style="margin:8px 0 16px">Ajustes</h2>
+  <div class="set">
+    <label><span>Nível de xingamento</span>
+      <span class="seg" id="seg"><button data-v="leve" class="${S.roast==='leve'?'on':''}">Leve</button><button data-v="pesado" class="${S.roast==='pesado'?'on':''}">Pesado</button></span></label>
+    <label><span>Voz (pronúncia em inglês)</span>
+      <span class="seg" id="vseg"><button data-v="1" class="${S.voice?'on':''}">Ligada</button><button data-v="0" class="${!S.voice?'on':''}">Mudo</button></span></label>
+  </div>
+  <div class="set"><p class="mut" style="margin:0">Seu progresso fica salvo só neste navegador/aparelho. As palavras que você mais erra aparecem mais nos exercícios.</p></div>
+  <button class="btn bad" id="reset">Apagar todo o progresso</button>`;
+  $('#b').onclick=home;
+  $('#seg').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.roast=v;save();settings()};
+  $('#vseg').onclick=e=>{const v=e.target.dataset.v;if(v===undefined)return;S.voice=v==='1';save();settings()};
+  $('#reset').onclick=()=>{if(confirm('Apagar tudo mesmo? Vai ter que recomeçar do zero, seu(sua) teimoso(a).')){localStorage.removeItem(KEY);load();home()}};
+}
+
+/* ======================= MENU DA UNIDADE ===================== */
+function unitMenu(i){
+  const u=UNITS[i];view='unit';
+  app.innerHTML=`
+  <button class="back" id="b">← Voltar</button>
+  <div class="hero"><div style="font-size:42px">${u.em}</div><h2>${esc(u.title)}</h2><p>${esc(u.sub)}</p></div>
+  <div class="row" style="margin-bottom:12px">
+    <button class="btn" id="study">📖 Estudar cards</button>
+    <button class="btn ok" id="quiz">💪 Praticar</button>
+  </div>
+  <div class="units">${u.items.map(it=>`<div class="unit" style="cursor:default" data-s="${esc(it[0])}">
+    <div style="flex:1"><h3>${esc(it[0])} <span class="pron" style="font-size:14px">${esc(it[2])}</span></h3><small>${esc(it[1])}</small></div>
+    <button class="speak" aria-label="Ouvir">🔊</button></div>`).join('')}</div>`;
+  $('#b').onclick=home;
+  $('#study').onclick=()=>cards(u);
+  $('#quiz').onclick=()=>startQuiz(u);
+  app.querySelectorAll('[data-s] .speak').forEach(b=>b.onclick=()=>speak(b.parentElement.dataset.s));
+}
+
+/* ========================== CARDS ============================ */
+function cards(u){
+  view='cards';
+  const list=shuffle(u.items);let i=0,flip=false;
+  const draw=()=>{
+    const it=list[i];
+    app.innerHTML=`
+    <div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${(i)/list.length*100}%"></i></div><span class="mut">${i+1}/${list.length}</span></div>
+    <button class="card face" id="card" style="all:unset;display:block;width:100%">
+      <div class="face">
+        ${flip?`<div class="big">${esc(it[1])}</div><div class="mut">${esc(it[0])}</div>`
+              :`<div class="big">${esc(it[0])}</div><div class="pron">fala-se: ${esc(it[2])}</div>`}
+        <div class="hint">toque pra virar</div>
+      </div>
+    </button>
+    <div class="row">
+      <button class="btn sec" id="sp">🔊 Ouvir</button>
+      <button class="btn" id="nx">${i===list.length-1?'Terminar':'Próximo →'}</button>
+    </div>`;
+    $('#x').onclick=()=>unitMenu(UNITS.indexOf(u));
+    $('#card').onclick=()=>{flip=!flip;draw()};
+    $('#sp').onclick=()=>speak(it[0]);
+    $('#nx').onclick=()=>{if(i===list.length-1)return unitMenu(UNITS.indexOf(u));i++;flip=false;draw();speak(list[i][0])};
+  };
+  draw();speak(list[0][0]);
+}
+
+/* ========================== QUIZ ============================= */
+let Q=null;
+function startQuiz(u){
+  const pool=u.items?u.items.map(i=>wordOf(u,i)):allWords();
+  // palavras com mais erros pesam mais
+  const weighted=[];
+  pool.forEach(w=>{const s=S.words[w.en]||{ok:0,bad:0};const n=1+Math.max(0,s.bad-s.ok);for(let k=0;k<Math.min(n,4);k++)weighted.push(w)});
+  const chosen=[];
+  shuffle(weighted).forEach(w=>{if(!chosen.includes(w)&&chosen.length<10)chosen.push(w)});
+  const types=['en2pt','pt2en','listen','type'];
+  const qs=chosen.map((w,i)=>({w,type:types[i%types.length],pool}));
+  Q={u,queue:shuffle(qs),total:qs.length,done:0,hits:0,miss:0,xp:0,pool};
+  nextQ();
+}
+
+function nextQ(){
+  if(!Q.queue.length)return finish();
+  const q=Q.queue[0];view='quiz';
+  const w=q.w;
+  const top=`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${Q.done/Q.total*100}%"></i></div></div>`;
+  const choose=(promptTxt,mainHtml,correct,optsList)=>{
+    app.innerHTML=top+`<div class="prompt">${promptTxt}</div>${mainHtml}
+      <div class="opts" id="opts">${optsList.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+    $('#opts').onclick=e=>{
+      const b=e.target.closest('.opt');if(!b)return;
+      const ok=b.dataset.v===correct;
+      $('#opts').classList.add('locked');
+      b.classList.add(ok?'right':'wrong');
+      if(!ok)[...document.querySelectorAll('.opt')].find(x=>x.dataset.v===correct).classList.add('right');
+      answer(ok,correct);
+    };
+  };
+  const others=(key)=>shuffle([...new Set(Q.pool.filter(x=>x.en!==w.en).map(x=>x[key]))].concat(
+      Q.pool.length<4?[...new Set(allWords().filter(x=>x.en!==w.en).map(x=>x[key]))]:[])).filter(x=>x!==w[key]).slice(0,3);
+
+  if(q.type==='en2pt'){
+    choose('O que significa?',`<h2 class="word">${esc(w.en)}<button class="speak" id="sp">🔊</button></h2><div class="pron">${esc(w.pron)}</div>`,
+      w.pt,shuffle([w.pt,...others('pt')]));
+    $('#sp').onclick=()=>speak(w.en);speak(w.en);
+  }else if(q.type==='pt2en'){
+    choose('Como se diz em inglês?',`<h2 class="word">${esc(w.pt)}</h2>`,w.en,shuffle([w.en,...others('en')]));
+  }else if(q.type==='listen'){
+    choose('Ouça e escolha o que você ouviu',`<button class="btn sec" id="sp" style="max-width:220px">🔊 Ouvir de novo</button>`,w.en,shuffle([w.en,...others('en')]));
+    $('#sp').onclick=()=>speak(w.en);speak(w.en);
+  }else{
+    app.innerHTML=top+`<div class="prompt">Escreva em inglês</div><h2 class="word">${esc(w.pt)}</h2>
+      <input class="type" id="inp" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="digite aqui…">
+      <button class="btn" id="go">Verificar</button>`;
+    const go=()=>{
+      const v=$('#inp').value;if(!v.trim())return;
+      $('#inp').disabled=true;$('#go').style.display='none';
+      answer(norm(v)===norm(w.en),w.en);
+    };
+    $('#go').onclick=go;$('#inp').onkeydown=e=>{if(e.key==='Enter')go()};
+    setTimeout(()=>$('#inp')&&$('#inp').focus(),50);
+  }
+  $('#x').onclick=()=>{if(confirm('Desistindo? Que decepção…')){Q=null;home()}};
+}
+
+function answer(ok,correct){
+  const q=Q.queue.shift();const w=q.w;
+  const st=S.words[w.en]||(S.words[w.en]={ok:0,bad:0});
+  const R=ROAST[S.roast];
+  if(ok){
+    st.ok++;Q.hits++;Q.done++;Q.xp+=10;
+    speak(w.en);
+  }else{
+    st.bad++;Q.miss++;
+    q.type=q.type==='type'?'en2pt':q.type; // reforço: devolve pra fila
+    Q.queue.push(q);
+    const c=document.querySelector('#app');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
+  }
+  save();
+  const sheet=document.createElement('div');
+  sheet.className='sheet '+(ok?'ok':'bad');
+  sheet.innerHTML=`<div><h3>${ok?'✅ Certo':'❌ Errado'}</h3>
+    <p>${esc(pick(ok?R.right:R.wrong))}${ok?'':`<br><b>Resposta: ${esc(correct)}</b> <span class="pron">(${esc(w.pron)}) = ${esc(w.pt)}</span>`}</p>
+    <button class="btn ${ok?'ok':'bad'}" id="cont">Continuar</button></div>`;
+  document.body.appendChild(sheet);
+  $('#cont').focus();
+  const cont=()=>{sheet.remove();document.removeEventListener('keydown',onk);nextQ()};
+  const onk=e=>{if(e.key==='Enter'){e.preventDefault();cont()}};
+  $('#cont').onclick=cont;setTimeout(()=>document.addEventListener('keydown',onk),50);
+}
+
+function finish(){
+  view='result';
+  const pct=Math.round(Q.hits/(Q.hits+Q.miss)*100);
+  const R=ROAST[S.roast];
+  touchStreak();S.xp+=Q.xp;
+  if(Q.u.items)S.units[Q.u.id]=Math.max(S.units[Q.u.id]||0,pct);
+  save();
+  const comment=pct<60?pick(R.low):pick(R.fin);
+  app.innerHTML=`<div class="res">
+    <div class="big">${pct>=80?'🏆':pct>=60?'😐':'💩'}</div>
+    <h2>${pct}% de acerto</h2>
+    <p class="mut" style="max-width:420px;margin:10px auto">“${esc(comment)}”</p>
+    <div class="stats"><span class="chip">⭐ +${Q.xp} XP</span><span class="chip">✅ ${Q.hits}</span><span class="chip">❌ ${Q.miss}</span></div>
+    <div class="row" style="margin-top:20px"><button class="btn sec" id="h">Início</button><button class="btn" id="again">Mais uma vez</button></div>
+  </div>`;
+  const u=Q.u;
+  $('#h').onclick=home;$('#again').onclick=()=>startQuiz(u);
+}
+
+/* ========================== INIT ============================= */
+load();home();
+if('serviceWorker' in navigator){
+  addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

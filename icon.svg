@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#14110f"/>
+  <path d="M96 132h250a40 40 0 0 1 40 40v110a40 40 0 0 1-40 40H230l-70 60v-60H96a40 40 0 0 1-40-40V172a40 40 0 0 1 40-40z" fill="#ff5a36" transform="translate(30 10)"/>
+  <text x="256" y="300" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="150" fill="#fff" text-anchor="middle">EN!</text>
+</svg>
