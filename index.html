@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inglês Sem Frescura</title>
 <meta name="description" content="Aprenda inglês do zero conversando com uma professora que não tem paciência pra você.">
 <meta name="theme-color" content="#070a14">
@@ -299,12 +299,12 @@ input.type:focus,input.tx:focus{border-color:var(--acc2);box-shadow:0 0 0 3px rg
   :root[data-theme="light"] #app{background-color:rgba(255,255,255,.4)}
 }
 /* tela cheia real: acompanha a área visível (iPhone, app instalado, barras do navegador, teclado) */
-#app{position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);width:100%;height:auto;max-width:480px;margin:0 auto;padding-top:env(safe-area-inset-top)}
+#app{position:fixed;top:0;left:0;right:0;bottom:calc(var(--kb,0px) + var(--pad-b,0px));width:100%;height:auto;min-height:0;max-width:480px;margin:0 auto;padding-top:env(safe-area-inset-top)}
 .tabs{margin:0 10px calc(10px + env(safe-area-inset-bottom))}
 .wrap.nt,.obf{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 .obf{padding-top:10px}
 @media (min-width:700px){
-  #app{position:relative;top:auto;left:auto;right:auto;bottom:auto;padding-top:0;height:min(880px,calc(100vh - 32px));margin:0 auto}
+  #app{position:relative;top:auto;left:auto;right:auto;bottom:auto;padding-top:0;height:min(880px,calc(100vh - 32px));min-height:0;margin:0 auto}
 }
 </style>
 </head>
@@ -569,6 +569,18 @@ function fitH(){
 }
 fitH();addEventListener('resize',fitH);addEventListener('orientationchange',fitH);
 if(window.visualViewport){visualViewport.addEventListener('resize',fitH);visualViewport.addEventListener('scroll',fitH)}
+const IOS_TOP={932:59,852:59,844:47,926:47,896:48,812:44,780:47,667:20,736:20,568:20};
+function autoPad(){
+  const e=envInfo();
+  if(!(e.ios&&e.standalone)||innerHeight<=innerWidth)return 0;
+  if(screen.height-innerHeight>6)return 0;
+  return IOS_TOP[screen.height]||47;
+}
+function applyPad(){
+  const v=(S&&S.padAdj!==undefined&&S.padAdj!=='auto')?+S.padAdj:autoPad();
+  document.documentElement.style.setProperty('--pad-b',v+'px');
+  return v;
+}
 let idbT=null,STG_OK=true;
 function idbOpen(cb){try{const r=indexedDB.open('isf',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onsuccess=()=>cb(r.result);r.onerror=()=>cb(null)}catch(e){cb(null)}}
 function idbGet(){return new Promise(res=>idbOpen(db=>{if(!db)return res(null);try{const g=db.transaction('k').objectStore('k').get('s');g.onsuccess=()=>res(g.result||null);g.onerror=()=>res(null)}catch(e){res(null)}}))}
@@ -586,7 +598,8 @@ async function boot(){
     try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   storageProbe();
   load(raw===null?undefined:raw);
-  applyTheme();
+  applyTheme();applyPad();
+  addEventListener('resize',applyPad);addEventListener('orientationchange',()=>setTimeout(applyPad,300));
   if(restored)toast('Progresso restaurado');
   hoje();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
@@ -1347,6 +1360,7 @@ function perfil(){
     <label><span>Português na explicação<small>Mostra traduções abertas ou escondidas</small></span><span class="seg" id="sp1"><button data-v="pt" class="${S.pt==='pt'?'on':''}">Com</button><button data-v="en" class="${S.pt==='en'?'on':''}">Menos</button></span></label>
     <label><span>Voz da professora</span><span class="seg" id="sp2"><button data-v="1" class="${S.voice?'on':''}">Ligada</button><button data-v="0" class="${!S.voice?'on':''}">Muda</button></span></label>
     <label><span>Tema</span><span class="seg" id="sp3"><button data-v="light" class="${S.theme!=='dark'?'on':''}">Claro</button><button data-v="dark" class="${S.theme==='dark'?'on':''}">Escuro</button></span></label>
+    <label><span>Ajuste da tela<small>Barra de baixo cortada? Suba a barra (agora: ${applyPad()} px)</small></span><span class="seg" id="sp4">${['auto',0,25,50,75].map(v=>`<button data-v="${v}" class="${String(S.padAdj===undefined?'auto':S.padAdj)===String(v)?'on':''}">${v==='auto'?'Auto':v}</button>`).join('')}</span></label>
     <label><span>Refazer a configuração<small>Nível, metas e jeito da professora</small></span><button class="btn sm sec2" id="rt">Refazer</button></label>
   </div>
   <div class="sec">Conversa livre (servidor com IA)</div>
@@ -1395,6 +1409,7 @@ function perfil(){
   $('#sp1').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.pt=v;save();perfil()};
   $('#sp2').onclick=e=>{const v=e.target.dataset.v;if(v===undefined)return;S.voice=v==='1';save();perfil()};
   $('#rt').onclick=()=>onboarding(0);
+  $('#sp4').onclick=e=>{const v=e.target.dataset.v;if(v===undefined)return;S.padAdj=v==='auto'?'auto':+v;save();applyPad();perfil()};
   $('#sp3').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.theme=v;save();applyTheme();perfil()};
   const saveApi=()=>{S.api={url:$('#au').value.trim(),token:$('#at').value};save()};
   $('#sv').onclick=()=>{saveApi();toast('Salvo')};
