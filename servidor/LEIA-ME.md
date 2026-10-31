@@ -1,25 +1,32 @@
-# Servidor da conversa livre (opcional)
+# Servidor da IA (opcional)
 
-O app funciona sem isto (situações, pronúncia, palavras, jogos). Este servidor só liga a **Conversa livre com IA**.
-Ele guarda a sua chave da IA em segredo; a chave nunca vai para o app nem para o GitHub.
+O app funciona sem isto (cenários, conversa aleatória por regras, pronúncia, palavras, jogos, progresso).
+Este servidor liga a **IA**: conversa livre e cenários criados por você, correção que entende qualquer frase,
+nota por resposta e a **Análise com IA** na aba Progresso.
 
-Custo: a Cloudflare é grátis para esse uso. A IA da Anthropic cobra por uso (o modelo usado é o mais barato).
+Nenhuma chave vai para o app nem para o GitHub: ela fica guardada só no servidor.
 
-## 1. Chave da IA
-1. Entre em https://console.anthropic.com e crie uma conta.
-2. Em **Billing**, adicione crédito (alguns dólares bastam) e defina um **limite de gasto mensal**.
-3. Em **API keys**, crie uma chave e copie (começa com `sk-ant-`).
+## Escolha uma IA
 
-## 2. Servidor na Cloudflare
-1. Crie conta grátis em https://dash.cloudflare.com
+**A) Workers AI da Cloudflare (recomendado para começar)**
+Não precisa de chave nem de cartão. Tem uma cota diária gratuita (confira o limite atual no painel da Cloudflare).
+A qualidade é boa para conversa simples e um pouco menor que a do Claude.
+
+**B) Claude (Anthropic)**
+Melhor qualidade, cobrado por uso. Crie a chave em https://console.anthropic.com, adicione crédito e defina um limite de gasto.
+
+## Passo a passo
+
+1. Crie uma conta grátis em https://dash.cloudflare.com
 2. **Workers & Pages → Create → Create Worker** (nome: `ingles-professora`) → **Deploy**.
 3. Clique em **Edit code**, apague tudo, cole o conteúdo de `worker.js` e clique em **Deploy**.
 4. Em **Settings → Variables and Secrets**, adicione:
-   - `ANTHROPIC_API_KEY` (tipo **Secret**): a chave do passo 1
    - `APP_TOKEN` (tipo **Secret**): uma senha que você inventa
    - `ALLOWED_ORIGIN` (tipo **Text**): `https://saymon-28.github.io`
-5. Copie o endereço do worker (termina com `.workers.dev`).
+   - só para a opção B: `ANTHROPIC_API_KEY` (tipo **Secret**) com a chave
+5. Só para a opção A: em **Settings → Bindings → Add → Workers AI**, use o nome de variável `AI` e salve.
+6. Faça **Deploy** de novo e copie o endereço do worker (termina com `.workers.dev`).
 
-## 3. No app
+## No app
 **Perfil → Conversa livre**: cole o endereço e a senha, toque em **Salvar** e **Testar conexão**.
-Depois é só abrir a aba **Conversar**.
+Depois use **Conversa aleatória**, **Crie seu próprio cenário** (aba Cenários) e **Gerar análise** (aba Progresso).

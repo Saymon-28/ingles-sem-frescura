@@ -306,6 +306,27 @@ input.type:focus,input.tx:focus{border-color:var(--acc2);box-shadow:0 0 0 3px rg
 @media (min-width:700px){
   #app{position:relative;top:auto;left:auto;right:auto;bottom:auto;padding-top:0;height:min(880px,calc(100vh - 32px));min-height:0;margin:0 auto}
 }
+/* conversa realista e progresso */
+.typing{display:flex;gap:5px;align-items:center;padding:14px 16px;width:64px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--acc2);opacity:.4;animation:bl 1.1s infinite}
+.typing span:nth-child(2){animation-delay:.18s}.typing span:nth-child(3){animation-delay:.36s}
+@keyframes bl{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:grid;gap:2px}
+.kpi b{font-size:26px;letter-spacing:-.02em;line-height:1.1}
+.kpi small{color:var(--mut)}
+.kpi .dl{font-size:12px;font-weight:700}
+.up{color:var(--ok)}.dn{color:var(--bad)}
+.sk{display:grid;gap:12px}
+.sk .r{display:grid;grid-template-columns:118px 1fr 40px;gap:8px;align-items:center;font-size:14px}
+.ins{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.ins:last-child{border:0}
+.ins .ic{font-size:22px;flex:none}
+.ins b{display:block}
+.ins small{color:var(--mut);display:block;margin-top:2px;line-height:1.35}
+.ringrow{display:flex;gap:14px;align-items:center}
+.tabs button{font-size:9.5px;letter-spacing:.03em}
+@media (prefers-reduced-motion:reduce){.typing span{animation:none}}
 </style>
 </head>
 <body>
@@ -552,11 +573,12 @@ const MISSIONS=[{k:'words',n:10,t:'Acertar 10 palavras'},{k:'speaks',n:5,t:'Fala
    ============================================================ */
 const KEY='isf_v1';
 let S;
-const today=()=>new Date().toISOString().slice(0,10);
+const dayStr=off=>{const d=new Date();d.setDate(d.getDate()+(off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const today=()=>dayStr(0);
 function load(raw){
   try{S=JSON.parse(raw===undefined?localStorage.getItem(KEY):raw)}catch(e){}
   S=Object.assign({v:2,name:'',level:'',mood:'calma',adult:false,pt:'pt',voice:true,xp:0,streak:0,last:'',words:{},units:{},dlg:{},
-    daily:{d:'',words:0,speaks:0,convos:0,lesson:false,claimed:[]},api:{url:'',token:''},onboarded:false,voiceMode:'all',theme:'dark',goal:0,months:3,minutes:10,weekly:0,interests:[]},S||{});
+    daily:{d:'',words:0,speaks:0,convos:0,lesson:false,claimed:[]},api:{url:'',token:''},onboarded:false,days:{},errs:{},recent:[],flags:{short:0,pt:0,conv:0,noconn:0},sugg:'always',aiIns:null,voiceMode:'all',theme:'dark',goal:0,months:3,minutes:10,weekly:0,interests:[]},S||{});
   if((S.v||0)<3){S.onboarded=false;S.v=3}
   if(S.v<4){S.theme='dark';S.v=4}
   if(!S.daily||S.daily.d!==today())S.daily={d:today(),words:0,speaks:0,convos:0,lesson:false,claimed:[]};
@@ -609,15 +631,61 @@ const M=()=>MOODS[moodKey()];
 const lvl=()=>Math.floor(Math.sqrt(S.xp/40))+1;
 function touchStreak(){
   const t=today();if(S.last===t)return;
-  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  const y=dayStr(-1);
   S.streak=S.last===y?S.streak+1:1;S.last=t;
 }
-const streakNow=()=>{const y=new Date(Date.now()-864e5).toISOString().slice(0,10);return(S.last===today()||S.last===y)?S.streak:0};
-function award(xp){S.xp+=xp;touchStreak();save()}
+const streakNow=()=>{const y=dayStr(-1);return(S.last===today()||S.last===y)?S.streak:0};
+function award(xp){S.xp+=xp;dayRec().xp+=xp;touchStreak();save()}
 function bump(k,n=1){
   S.daily[k]=(S.daily[k]||0)+n;
   MISSIONS.forEach(m=>{if(S.daily[m.k]>=m.n&&!S.daily.claimed.includes(m.k)){S.daily.claimed.push(m.k);S.xp+=30;toast('Missão cumprida: '+m.t+' · +30 XP')}});
   save();
+}
+
+/* ============================================================
+   MÉTRICAS: acerto, evolução diária e análise
+   ============================================================ */
+const Cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function dayRec(d){d=d||today();return S.days[d]||(S.days[d]={xp:0,a:{}})}
+function track(kind,pts,info){
+  const D=dayRec(),x=D.a[kind]||(D.a[kind]=[0,0]);x[0]++;x[1]+=pts;
+  if(info){S.recent.push(Object.assign({d:today(),k:kind},info));if(S.recent.length>40)S.recent.shift()}
+  const ks=Object.keys(S.days).sort();if(ks.length>120)ks.slice(0,ks.length-120).forEach(k=>delete S.days[k]);
+  save();
+}
+const lastDays=n=>{const a=[];for(let i=n-1;i>=0;i--)a.push(dayStr(-i));return a};
+function agg(ds,kind){let n=0,s=0;ds.forEach(d=>{const D=S.days[d];if(!D)return;for(const k in D.a){if(kind&&k!==kind)continue;n+=D.a[k][0];s+=D.a[k][1]}});return {n,s,p:n?Math.round(s/n*100):null}}
+const GOALACTS={5:8,10:15,20:30,30:45};
+const goalActs=()=>GOALACTS[S.minutes]||15;
+const KNAME={vocab:'Vocabulário',conv:'Conversa aleatória',scen:'Cenários',pron:'Pronúncia'};
+const KTIP={vocab:'Faça a Revisão mista todos os dias.',conv:'Responda com frases completas e um motivo (because).',scen:'Repita os cenários abaixo de 70%.',pron:'Use o 🐢 para ouvir devagar e repita em voz alta.'};
+const dd=d=>d.slice(8)+'/'+d.slice(5,7);
+function weakWords(n){return Object.entries(S.words).filter(([,v])=>v.bad>v.ok).sort((a,b)=>(b[1].bad-b[1].ok)-(a[1].bad-a[1].ok)).slice(0,n||5).map(x=>x[0])}
+function localInsights(){
+  const out=[],d7=lastDays(7),p7=lastDays(14).slice(0,7),a7=agg(d7),b7=agg(p7),d60=lastDays(60),all=agg(d60);
+  if(!all.n){out.push({ic:'🚀',t:'Comece agora',d:'Faça uma conversa aleatória ou um cenário e eu começo a analisar o seu desempenho.',act:'rc',al:'Conversa aleatória'});return out}
+  const ks=Object.keys(KNAME).map(k=>Object.assign({k},agg(d60,k))).filter(x=>x.n>=3).sort((a,b)=>b.p-a.p);
+  if(ks.length>=2){const lo=ks[ks.length-1];
+    out.push({ic:'💪',t:'Ponto forte',d:`${KNAME[ks[0].k]}: ${ks[0].p}% de acerto em ${ks[0].n} atividades.`});
+    out.push({ic:'🎯',t:'Ponto a melhorar',d:`${KNAME[lo.k]} está em ${lo.p}%. ${KTIP[lo.k]}`,act:{vocab:'mix',conv:'rc',scen:'scen',pron:'pron'}[lo.k],al:'Treinar agora'});
+  }else if(ks.length===1)out.push({ic:'📈',t:'Primeiros dados',d:`${KNAME[ks[0].k]}: ${ks[0].p}% em ${ks[0].n} atividades. Varie os treinos para eu comparar suas habilidades.`});
+  if(a7.n&&b7.n){const dl=a7.p-b7.p;out.push({ic:dl>=3?'📈':dl<=-3?'📉':'➖',t:'Tendência da semana',d:dl>=3?`Seu acerto subiu ${dl} pontos em relação à semana anterior.`:dl<=-3?`Seu acerto caiu ${-dl} pontos. Revise os erros abaixo antes de avançar.`:'Seu acerto está estável. Para subir, aumente a dificuldade ou o tempo de prática.'})}
+  Object.entries(S.errs).sort((a,b)=>b[1]-a[1]).slice(0,3).forEach(([k,c])=>{const r=RULES.find(r=>r[1]===k);out.push({ic:'✏️',t:'Erro recorrente ('+c+'×)',d:(r?r[2]:k)+' Forma certa: '+k+'.'})});
+  const f=S.flags;
+  if(f.conv>=5&&f.short/f.conv>.3)out.push({ic:'🗣️',t:'Respostas curtas',d:`Em ${Math.round(f.short/f.conv*100)}% das respostas você falou pouco. Tente frases completas, com um motivo.`});
+  if(f.conv>=5&&f.pt/f.conv>.1)out.push({ic:'🇧🇷',t:'Português no meio',d:'Você voltou ao português em algumas respostas. Use as palavras que já sabe em inglês, mesmo simples.'});
+  if(f.conv>=5&&f.noconn/f.conv>.4)out.push({ic:'🔗',t:'Conectores',d:'Suas frases quase não usam “because”, “but” ou “so”. Eles fazem o inglês soar mais natural.'});
+  const ww=weakWords(5);if(ww.length>=2)out.push({ic:'📖',t:'Palavras para revisar',d:ww.join(', ')+'.',act:'mix',al:'Revisão mista'});
+  const act=d7.filter(d=>agg([d]).n>0).length;
+  out.push({ic:'🔥',t:'Constância',d:`Você estudou em ${act} dos últimos 7 dias.${act<4?' Tente chegar a 5 para fixar o conteúdo.':' Ótimo ritmo!'}`});
+  return out;
+}
+function statsForAI(){
+  const d14=lastDays(14),d60=lastDays(60),k={};
+  Object.keys(KNAME).forEach(x=>{const a=agg(d60,x);if(a.n)k[x]={n:a.n,acc:a.p}});
+  return {goalPerDay:goalActs(),streak:streakNow(),days:d14.map(d=>{const a=agg([d]);return {d,n:a.n,acc:a.p,xp:(S.days[d]||{}).xp||0}}),kinds:k,
+    topErrors:Object.entries(S.errs).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([r,c])=>({rule:r,count:c})),weakWords:weakWords(8),flags:S.flags,
+    recent:S.recent.slice(-12).map(x=>({k:x.k,q:(x.q||'').slice(0,100),a:(x.a||'').slice(0,140),s:x.s,fix:(x.c||'').slice(0,140)}))};
 }
 
 /* ============================================================
@@ -745,7 +813,7 @@ const wordsHtml=r=>r.words.map(x=>`<span class="w ${x.ok?'ok':'no'}">${esc(x.w)}
    NAVEGAÇÃO COM ABAS
    ============================================================ */
 let view='hoje';
-const TABS=[['hoje','🏠','Início'],['situ','🎭','Cenários'],['treinar','🏋️','Treinar'],['perfil','👤','Perfil']];
+const TABS=[['hoje','🏠','Início'],['situ','🎭','Cenários'],['treinar','🏋️','Treinar'],['prog','📊','Progresso'],['perfil','👤','Perfil']];
 const toTop=()=>{const v=app.querySelector('.view');if(v)v.scrollTop=0};
 function shell(inner,tab){
   view=tab;
@@ -754,7 +822,7 @@ function shell(inner,tab){
   toTop();
 }
 function full(inner){app.innerHTML=`<div class="view"><div class="wrap nt">${inner}</div></div>`;toTop()}
-function go(t){stopListen();if('speechSynthesis' in window)speechSynthesis.cancel();({hoje,situ,treinar,perfil})[t]()}
+function go(t){stopListen();if('speechSynthesis' in window)speechSynthesis.cancel();({hoje,situ,treinar,prog,perfil})[t]()}
 
 
 /* ============================================================
@@ -957,6 +1025,7 @@ function hoje(){
     <button class="btn sec2" id="daily">${S.daily.lesson?'✅':'▶'} Lição do dia<small>${S.daily.lesson?'Feita hoje':'cerca de 8 min'}</small></button>
   </div>
   <div class="card2" style="margin-top:14px"><b>Nível de conversa: ${CEFR[c]} · ${esc(LVNAME[CEFR[c]])}</b><div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div><small class="mut">${more?`${st.done}/${st.need} cenários com 70% ou mais para liberar o ${CEFR[c+1]}`:'Nível máximo liberado'}</small></div>
+  ${(()=>{const t=agg([today()]),g=goalActs();return `<button class="card2" id="gprog" style="width:100%;text-align:left;display:block"><div class="ringrow">${ring(t.n/g,t.n+'/'+g)}<div style="flex:1"><b>Hoje no app</b><div class="mut small">${t.n?t.p+'% de acerto · ':''}meta de ${g} atividades</div><div class="mut small" style="margin-top:4px;color:var(--acc2)">Ver progresso e insights →</div></div></div></button>`})()}
   <div class="sec">Missões de hoje</div>
   <div class="card2" style="padding:4px 14px">${MISSIONS.map(x=>{const v=Math.min(S.daily[x.k]||0,x.n),d=v>=x.n;return `<div class="mission ${d?'d':''}"><span>${d?'✅':'🎯'}</span><span style="min-width:150px">${x.t}</span><div class="bar ${d?'g':''}"><i style="width:${v/x.n*100}%"></i></div><span>${v}/${x.n}</span></div>`}).join('')}</div>`,'hoje');
   bindMoodSwitch(()=>hoje());
@@ -965,6 +1034,7 @@ function hoje(){
   const ix=$('#iosx');if(ix)ix.onclick=()=>{S.iosTipDone=true;save();hoje()};
   const tx=$('#tipx');if(tx)tx.onclick=()=>{S.tipDone=true;save();hoje()};
   $('#rc').onclick=rcStart;
+  $('#gprog').onclick=()=>go('prog');
   $('#a-scen').onclick=()=>nx?scenIntro(nx):go('situ');
   $('#daily').onclick=daily;
 }
@@ -1087,8 +1157,8 @@ function answerQ(ok,correct){
   const q=Q.queue.shift(),w=q.w;
   const st=S.words[w.en]||(S.words[w.en]={ok:0,bad:0});
   const m=M();
-  if(ok){st.ok++;Q.hits++;Q.done++;Q.xp+=10;bump('words');speak(w.en)}
-  else{st.bad++;Q.miss++;if(q.type==='type')q.type='en2pt';Q.queue.push(q);const c=$('#app');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}
+  if(ok){st.ok++;Q.hits++;Q.done++;Q.xp+=10;bump('words');track('vocab',1);speak(w.en)}
+  else{st.bad++;Q.miss++;track('vocab',0);if(q.type==='type')q.type='en2pt';Q.queue.push(q);const c=$('#app');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}
   save();
   const sheet=document.createElement('div');
   sheet.className='sheet '+(ok?'ok':'bad');
@@ -1125,7 +1195,7 @@ function game(){
   const end=()=>{
     clearInterval(timer);
     const ok=6-left,xp=ok*5+(left===0?t:0);
-    award(xp);bump('words',ok);
+    award(xp);bump('words',ok);for(let i=0;i<ok;i++)track('vocab',1);for(let i=0;i<miss;i++)track('vocab',0);
     full(`<div class="res"><div class="big">${left===0?'🏆':'⏱️'}</div><h2>${ok}/6 pares</h2><p class="mut">${left===0?'Fechou antes do tempo!':'Acabou o tempo.'}</p>
       <div class="stats"><span class="chip">⭐ +${xp} XP</span></div>
       <div class="row"><button class="btn sec2" id="h">Início</button><button class="btn" id="again">Jogar de novo</button></div></div>`);
@@ -1213,7 +1283,7 @@ function dlgDraw(){
 }
 function dlgAnswer(alts){
   const t=D.d.turns[D.i],r=evalAns(alts,t.a),li=CEFR.indexOf(D.d.lv),g=grade(r.score,li),m=M();
-  bump('speaks');
+  bump('speaks');track('scen',g==='ok'?1:g==='almost'?.5:0);
   D.log.push(`<div class="b u">${wordsHtml(r)}<div class="tr">${Math.round(r.score*100)}%</div></div>`);
   let fb=esc(pick(m[g]));
   if(g!=='ok')fb+=`<div class="cor">Uma forma natural: <b>${esc(r.target)}</b> <button class="sp" data-say="${esc(r.target)}">🔊</button></div>`;
@@ -1271,7 +1341,7 @@ function pronDraw(){
   bindCtl();
   $('#x').onclick=()=>{stopListen();go('hoje')};
   $('#sp').onclick=()=>speak(p.en,0,1);$('#sl').onclick=()=>speak(p.en,.55,1);
-  const done=alts=>{P.res=evalAns(alts,[p.en]);const sc=P.res.score;bump('speaks');award(Math.round(sc*10));P.scores.push(sc);pronDraw()};
+  const done=alts=>{P.res=evalAns(alts,[p.en]);const sc=P.res.score;bump('speaks');track('pron',sc);award(Math.round(sc*10));P.scores.push(sc);pronDraw()};
   if(P.res){
     $('#rt').onclick=()=>{P.scores.pop();P.res=null;pronDraw()};
     $('#nx').onclick=()=>{P.i++;P.res=null;if(P.i>=P.list.length)pronEnd();else pronDraw()};
@@ -1326,10 +1396,10 @@ function chat(topic,scen){
 function chatDraw(){
   const cl=$('#cl');if(!cl)return;
   cl.innerHTML=C.log.map(x=>{
-    if(x.r==='u')return `<div class="b u">${esc(x.t)}</div>`;
+    if(x.r==='u')return `<div class="b u">${esc(x.t)}${x.sc!=null?`<div class="tr">${x.sc}%</div>`:''}</div>`;
     if(x.r==='e')return `<div class="b err">${esc(x.t)}</div>`;
-    return `<div class="b t"><div>${esc(x.t)} <button class="sp" data-say="${esc(x.t)}">🔊</button></div>${x.tr?`<div class="tr ${S.pt==='en'?'hid':''}">${esc(x.tr)}</div>`:''}${x.c?`<div class="cor">✏️ ${esc(x.c)}</div>`:''}</div>`;
-  }).join('')+(C.busy?'<div class="b t mut">digitando…</div>':'');
+    return `<div class="b t"><div>${esc(x.t)} <button class="sp" data-say="${esc(x.t)}">🔊</button></div>${x.tr?`<div class="tr ${S.pt==='en'?'hid':''}">${esc(x.tr)}</div>`:''}</div>${(x.c||x.fx||x.sg)?`<div class="b f">${x.c?`<div>✏️ ${esc(x.c)}</div>`:''}${x.fx?`<div class="cor" style="${x.c?'':'border:0;margin:0;padding:0'}">✅ Sua frase corrigida: <b>${esc(x.fx)}</b></div>`:''}${x.sg?`<div class="cor">💡 Uma forma melhor: <b>${esc(x.sg)}</b> <button class="sp" data-say="${esc(x.sg)}">🔊</button></div>`:''}</div>`:''}`;
+  }).join('')+(C.busy?'<div class="b t typing"><span></span><span></span><span></span></div>':'');
   if(cl.lastElementChild)cl.lastElementChild.scrollIntoView({block:'end'});
 }
 async function askAI(text){
@@ -1341,11 +1411,85 @@ async function askAI(text){
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(j.error||('erro '+r.status));
     C.msgs.push({role:'assistant',content:j.reply});
-    C.log.push({r:'a',t:j.reply,tr:j.translation,c:j.correction});
-    if(text){award(3);bump('speaks')}
-    speak(j.reply);
+    C.log.push({r:'a',t:j.reply,tr:j.translation,c:j.correction,fx:j.corrected,sg:j.suggestion});
+    if(text){
+      award(3);bump('speaks');S.flags.conv++;
+      if(typeof j.score==='number'){
+        const lu=C.log.filter(x=>x.r==='u').pop();if(lu)lu.sc=j.score;
+        track('conv',j.score>=80?1:j.score>=50?.5:0,{q:C.lastQ||'',a:text,s:j.score,f:j.correction?[String(j.correction).slice(0,80)]:[],c:j.corrected||''});
+      }
+    }
+    C.lastQ=j.reply;speak(j.reply);
   }catch(e){C.log.push({r:'e',t:'Não consegui falar com o servidor ('+e.message+'). Confira o endereço e a senha em Perfil.'})}
   C.busy=false;chatDraw();
+}
+
+/* ============================================================
+   PROGRESSO
+   ============================================================ */
+function ring(p,txt){
+  const r=34,c=2*Math.PI*r;
+  return `<svg width="92" height="92" viewBox="0 0 92 92" role="img" aria-label="Meta do dia"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#7c5cff"/></linearGradient></defs><circle cx="46" cy="46" r="${r}" fill="none" stroke="var(--card2)" stroke-width="9"/><circle cx="46" cy="46" r="${r}" fill="none" stroke="url(#rg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c*(1-Math.min(1,p))).toFixed(1)}" transform="rotate(-90 46 46)"/><text x="46" y="51" text-anchor="middle" font-size="16" font-weight="800" fill="var(--txt)">${txt}</text></svg>`;
+}
+function evoChart(ds){
+  const W=320,H=160,L=30,Rr=8,T=12,B=24,iw=W-L-Rr,ih=H-T-B;
+  const st=ds.map(d=>agg([d])),maxN=Math.max(4,...st.map(x=>x.n));
+  const x=i=>L+iw*(i+.5)/ds.length,yA=p=>T+ih*(1-p/100),yN=n=>T+ih*(1-n/maxN),bw=iw/ds.length*.6;
+  const pts=st.map((s,i)=>s.n?[x(i),yA(s.p),s.p]:null).filter(Boolean);
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução diária: atividades e percentual de acerto">
+    ${[0,50,100].map(v=>`<line x1="${L}" x2="${W-Rr}" y1="${yA(v)}" y2="${yA(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-5}" y="${yA(v)+4}" font-size="10" text-anchor="end" fill="var(--mut)">${v}%</text>`).join('')}
+    ${st.map((s,i)=>s.n?`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${yN(s.n).toFixed(1)}" width="${bw.toFixed(1)}" height="${(T+ih-yN(s.n)).toFixed(1)}" rx="3" fill="var(--acc)" opacity=".30"/>`:'').join('')}
+    ${pts.length>1?`<path d="${path}" fill="none" stroke="var(--acc2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`:''}
+    ${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="var(--acc2)"/>`).join('')}
+    ${pts.length?`<text x="${pts[pts.length-1][0].toFixed(1)}" y="${Math.max(10,pts[pts.length-1][1]-8).toFixed(1)}" font-size="11" font-weight="700" text-anchor="end" fill="var(--txt)">${pts[pts.length-1][2]}%</text>`:''}
+    <text x="${L}" y="${H-6}" font-size="10" fill="var(--mut)">${dd(ds[0])}</text><text x="${W-Rr}" y="${H-6}" font-size="10" text-anchor="end" fill="var(--mut)">hoje</text></svg>`;
+}
+function aiBlock(){
+  if(!S.api.url)return `<div class="card2"><b>🤖 Análise com IA</b><p class="mut small" style="margin:6px 0 8px">A IA lê todas as suas atividades e escreve um diagnóstico personalizado, com plano para amanhã. Precisa do servidor com IA, que você liga uma vez em Perfil.</p><button class="btn sm sec2" id="aiset2">Como ligar</button></div>`;
+  const a=S.aiIns,j=a&&a.j;
+  const lst=(t,arr)=>arr&&arr.length?`<div class="ins"><span class="ic">${t[0]}</span><div><b>${t[1]}</b>${arr.map(x=>`<small>• ${esc(x)}</small>`).join('')}</div></div>`:'';
+  return `<div class="card2"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>🤖 Análise com IA</b><button class="btn sm" id="aigen" style="padding:8px 14px">${j?'Atualizar':'Gerar análise'}</button></div>
+   ${j?`<p class="mut small" style="margin:6px 0 4px">Gerada em ${esc(a.d.slice(8)+'/'+a.d.slice(5,7))}</p><p style="margin:6px 0">${esc(j.summary||'')}</p>${lst(['💪','O que está bom'],j.strengths)}${lst(['🎯','O que melhorar'],j.improvements)}${lst(['🗓️','Plano para amanhã'],j.plan)}${j.motivation?`<p class="mut small" style="margin-top:8px">${esc(j.motivation)}</p>`:''}`:`<p class="mut small" style="margin:8px 0 0">Toque em <b>Gerar análise</b>. Quanto mais atividades, melhor o diagnóstico.</p>`}</div>`;
+}
+function prog(){
+  const m=M(),d14=lastDays(14),d7=lastDays(7),p7=lastDays(14).slice(0,7),t=agg([today()]),a7=agg(d7),b7=agg(p7),all=agg(lastDays(120));
+  const goal=goalActs(),dl=(a7.p!==null&&b7.p!==null)?a7.p-b7.p:null;
+  const d60=lastDays(60),ks=Object.keys(KNAME).map(k=>Object.assign({k},agg(d60,k)));
+  const ins=localInsights();
+  const rows=lastDays(7).reverse().map(d=>{const a=agg([d]),D=S.days[d]||{xp:0};return `<div class="mission"><span style="min-width:48px" class="mut">${d===today()?'hoje':dd(d)}</span><div class="bar ${a.p>=80?'g':''}"><i style="width:${a.p||0}%"></i></div><span style="min-width:86px;text-align:right" class="mut">${a.n?a.p+'% · '+a.n:'—'}</span></div>`}).join('');
+  const errs=S.recent.filter(x=>x.s<80||(x.f&&x.f.length)).slice(-6).reverse();
+  shell(`<div class="top"><h2>Progresso</h2><span class="chip">🔥 ${streakNow()}</span></div>
+  <p class="mut" style="margin:-6px 0 12px">${esc(m.ins)}</p>
+  <div class="card2"><div class="ringrow">${ring(t.n/goal,t.n+'/'+goal)}<div><b>Meta de hoje</b><div class="mut small">${t.n>=goal?'Meta batida! 🎉':`Faltam ${Math.max(0,goal-t.n)} atividades (${S.minutes} min por dia)`}</div><div style="margin-top:6px"><span class="chip">${t.n?t.p+'% de acerto hoje':'sem atividades ainda'}</span></div></div></div></div>
+  <div class="kpis">
+    <div class="kpi"><small>Acerto (7 dias)</small><b>${a7.p===null?'—':a7.p+'%'}</b>${dl===null?'':`<span class="dl ${dl>=0?'up':'dn'}">${dl>=0?'▲ +':'▼ '}${dl} pts vs semana anterior</span>`}</div>
+    <div class="kpi"><small>Atividades (7 dias)</small><b>${a7.n}</b><span class="dl mut">${all.n} no total</span></div>
+    <div class="kpi"><small>XP total</small><b>${S.xp}</b><span class="dl mut">Nível ${lvl()}</span></div>
+    <div class="kpi"><small>Nível de conversa</small><b>${CEFR[curLevelIdx()]}</b><span class="dl mut">${esc(LVNAME[CEFR[curLevelIdx()]])}</span></div>
+  </div>
+  <div class="sec">Evolução diária</div>
+  <div class="chart">${evoChart(d14)}<p class="mut small" style="margin:4px 4px 0">Linha: % de acerto. Barras: quantidade de atividades. Últimos 14 dias.</p></div>
+  <div class="card2" style="padding:4px 14px">${rows}</div>
+  <div class="sec">Acerto por habilidade</div>
+  <div class="card2"><div class="sk">${ks.map(k=>`<div class="r"><span>${KNAME[k.k]}</span><div class="bar ${k.p>=80?'g':''}" style="margin:0"><i style="width:${k.p||0}%"></i></div><span class="mut" style="text-align:right">${k.n?k.p+'%':'—'}</span></div>`).join('')}</div></div>
+  <div class="sec">Insights</div>
+  <div class="card2" style="padding:4px 14px">${ins.map(x=>`<div class="ins"><span class="ic">${x.ic}</span><div><b>${esc(x.t)}</b><small>${esc(x.d)}</small>${x.act?`<button class="btn sm sec2" data-act="${x.act}" style="margin-top:8px">${esc(x.al||'Ir')}</button>`:''}</div></div>`).join('')}</div>
+  ${aiBlock()}
+  <div class="sec">Seus últimos erros</div>
+  <div class="card2" style="padding:4px 14px">${errs.length?errs.map(x=>`<div class="ins"><span class="ic">✏️</span><div><b>${esc(x.a||'')}</b>${x.c?`<small>✅ ${esc(x.c)}</small>`:''}<small>${esc(x.q||'')}</small></div></div>`).join(''):'<p class="mut small" style="margin:12px 0">Nenhum erro registrado ainda. Faça uma conversa aleatória.</p>'}</div>`,'prog');
+  app.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>({rc:rcStart,mix:()=>startQuiz({id:'mix',title:'Revisão mista',items:null}),scen:()=>nextScen()?scenIntro(nextScen()):go('situ'),pron:()=>pronDrill({n:5})})[b.dataset.act]());
+  const g=$('#aigen');if(g)g.onclick=()=>aiInsights(g);
+  const s=$('#aiset2');if(s)s.onclick=()=>go('perfil');
+}
+async function aiInsights(btn){
+  btn.disabled=true;btn.textContent='Analisando…';
+  try{
+    const r=await fetch(S.api.url,{method:'POST',headers:{'Content-Type':'application/json','X-App-Token':S.api.token||''},body:JSON.stringify({mode:'insights',mood:moodKey(),adult:!!S.adult,pt:S.pt,name:S.name,level:CEFR[curLevelIdx()],stats:statsForAI()})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||('erro '+r.status));
+    S.aiIns={d:today(),j};save();prog();toast('Análise pronta');
+  }catch(e){toast('Não consegui gerar a análise: '+e.message);prog()}
 }
 
 /* ============================================================
@@ -1360,6 +1504,7 @@ function perfil(){
     <label><span>Português na explicação<small>Mostra traduções abertas ou escondidas</small></span><span class="seg" id="sp1"><button data-v="pt" class="${S.pt==='pt'?'on':''}">Com</button><button data-v="en" class="${S.pt==='en'?'on':''}">Menos</button></span></label>
     <label><span>Voz da professora</span><span class="seg" id="sp2"><button data-v="1" class="${S.voice?'on':''}">Ligada</button><button data-v="0" class="${!S.voice?'on':''}">Muda</button></span></label>
     <label><span>Tema</span><span class="seg" id="sp3"><button data-v="light" class="${S.theme!=='dark'?'on':''}">Claro</button><button data-v="dark" class="${S.theme==='dark'?'on':''}">Escuro</button></span></label>
+    <label><span>Resposta sugerida<small>Na conversa aleatória</small></span><span class="seg" id="sp5"><button data-v="always" class="${S.sugg!=='errors'?'on':''}">Sempre</button><button data-v="errors" class="${S.sugg==='errors'?'on':''}">Só se errar</button></span></label>
     <label><span>Ajuste da tela<small>Barra de baixo cortada? Suba a barra (agora: ${applyPad()} px)</small></span><span class="seg" id="sp4">${['auto',0,25,50,75].map(v=>`<button data-v="${v}" class="${String(S.padAdj===undefined?'auto':S.padAdj)===String(v)?'on':''}">${v==='auto'?'Auto':v}</button>`).join('')}</span></label>
     <label><span>Refazer a configuração<small>Nível, metas e jeito da professora</small></span><button class="btn sm sec2" id="rt">Refazer</button></label>
   </div>
@@ -1409,6 +1554,7 @@ function perfil(){
   $('#sp1').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.pt=v;save();perfil()};
   $('#sp2').onclick=e=>{const v=e.target.dataset.v;if(v===undefined)return;S.voice=v==='1';save();perfil()};
   $('#rt').onclick=()=>onboarding(0);
+  $('#sp5').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.sugg=v;save();perfil()};
   $('#sp4').onclick=e=>{const v=e.target.dataset.v;if(v===undefined)return;S.padAdj=v==='auto'?'auto':+v;save();applyPad();perfil()};
   $('#sp3').onclick=e=>{const v=e.target.dataset.v;if(!v)return;S.theme=v;save();applyTheme();perfil()};
   const saveApi=()=>{S.api={url:$('#au').value.trim(),token:$('#at').value};save()};
@@ -1502,26 +1648,37 @@ function thirdPerson(t){
   return false;
 }
 const RULES=[
- [/\bgoed\b/i,'went','O passado de “go” é “went”, não “goed”.','“Goed”? Que porra de palavra é essa? O passado de go é WENT, sua anta.'],
- [/\bam agree\b|\bi'?m agree\b/i,'I agree','“Concordar” é “I agree”, sem o “am”.','“I am agree”? Concordar não leva “am”, cacete. É I AGREE.'],
- [thirdPerson,'he/she/it + verbo com -s (he works, she likes, he does not)','Com he/she/it o verbo ganha -s (he works) e a negativa usa “doesn’t”.','“He work”? Falta o S, sua anta! He WORKS. Terceira pessoa, pelo amor de Deus.'],
- [/\bi (no|not) (like|have|want|know|speak|understand|eat|drink)\b/i,'I do not … (I do not like)','Para negar com verbos, use “I don’t” (I don’t like).','“I no like”? Isso é inglês de Tarzan. É I DON’T, porra.'],
- [/\bmore (better|bigger|easier|good)\b/i,'better','O comparativo de “good” é “better”, sem “more”.','“More better”? Dois comparativos juntos, seu burro! Só BETTER.'],
- [/\bdepends? of\b/i,'depends on','“Depende de” é “depends on”.','“Depends of”? É DEPENDS ON, caramba. Preposição errada de novo.'],
- [/\bi have (\d+|[a-z-]+) years( old)?\b(?! of| in| experience| working| ago)/i,'I am … years old','Idade usa “to be”: I am thirty years old (não “have”).','“I have 30 years”? Você não TEM anos, você É velho. I AM thirty, anta.'],
- [/\bi am (live|work|study|eat|go|love)\b/i,'I live / I work / …','Não use “am” junto do verbo principal: I live (não “I am live”).','“I am live”? Tá vivo ou o quê? Verbo SEM “am”: I LIVE.'],
- [/\bdid(n'?t| not)? (went|saw|ate|came|had|made|took|goed)\b/i,'did + verbo no infinitivo (did you go? I did not go)','Depois de “did” o verbo volta ao infinitivo: “I didn’t go”.','Depois de DID o verbo fica no infinitivo, anta! Didn’t GO, não “went”.'],
- [/\bpeople is\b/i,'people are','“People” é plural: people are.','“People is”? Gente é plural, porra: PEOPLE ARE.'],
- [/\bcan to\b/i,'I can + verbo','Depois de “can” não se usa “to”: I can go.','“Can to”? Tira esse TO daí, caralho.'],
- [/\bdiscuss about\b/i,'discuss …','“Discuss” já significa “discutir sobre”, sem “about”.','“Discuss about”? Já é “discutir sobre”, tira o ABOUT, cacete.'],
- [/\bvery like\b(?!ly)/i,'I really like','Use “I really like” ou “I like … a lot”.','“I very like”? Que inglês é esse? I REALLY like, sua anta.'],
- [/\bin (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,'on + dia da semana (on Monday)','Dias da semana usam “on”: on Monday.','“In Monday”? É ON Monday, porra.'],
- [/\bi (has|does|goes)\b/i,'I have / I do / I go','Com “I” o verbo fica sem -s.','“I has”? Com I não tem S, anta! I HAVE.'],
- [/\b(he|she|it) (am|are)\b|\b(they|we|you) (is|am)\b/i,'I am, he/she/it is, we/you/they are','Atenção ao verbo to be: I am, he/she/it is, we/you/they are.','Errou o TO BE? I am, he IS, they ARE. Decora, porra.'],
- [/\bmake (my |the )?homework\b/i,'do my homework','“Fazer a lição” é “do homework”, não “make”.','“Make homework”? É DO homework, caramba.'],
- [/\b(like|love) of\b/i,'I like …','“Like” e “love” não levam “of”.','“Like of”? Tira o OF, seu burro.'],
- [/\bi am (\d+) years\b(?! old)/i,'I am … years old','Falta “old”: I am 30 years old.','Falta o OLD, anta! I am 30 years OLD.']
+ [/\bgoed\b/i,'went','O passado de “go” é “went”, não “goed”.','“Goed”? Que porra de palavra é essa? O passado de go é WENT, sua anta.',t=>t.replace(/\bgoed\b/gi,'went')],
+ [/\bam agree\b|\bi'?m agree\b/i,'I agree','“Concordar” é “I agree”, sem o “am”.','“I am agree”? Concordar não leva “am”, cacete. É I AGREE.',t=>t.replace(/\bI(?: am|'m) agree\b/gi,'I agree').replace(/\bam agree\b/gi,'agree')],
+ [thirdPerson,'he/she/it + verbo com -s (he works, she likes, he does not)','Com he/she/it o verbo ganha -s (he works) e a negativa usa “doesn’t”.','“He work”? Falta o S, sua anta! He WORKS. Terceira pessoa, pelo amor de Deus.',fix3],
+ [/\b(i|you|we|they|he|she) (no|not) (like|have|want|know|speak|understand|eat|drink)\b/i,'I do not … (I do not like)','Para negar com verbos, use “don’t” (I don’t like) ou “doesn’t” (he doesn’t like).','“I no like”? Isso é inglês de Tarzan. É DON’T, porra.',t=>t.replace(/\b(i|you|we|they|he|she) (?:no|not) (like|have|want|know|speak|understand|eat|drink)\b/gi,(m,p,v)=>p+(/^(he|she)$/i.test(p)?' does not ':' do not ')+v)],
+ [/\bmore (better|bigger|easier|good)\b/i,'better','O comparativo de “good” é “better”, sem “more”.','“More better”? Dois comparativos juntos, seu burro! Só BETTER.',t=>t.replace(/\bmore good\b/gi,'better').replace(/\bmore (better|bigger|easier)\b/gi,'$1')],
+ [/\bdepends? of\b/i,'depends on','“Depende de” é “depends on”.','“Depends of”? É DEPENDS ON, caramba. Preposição errada de novo.',t=>t.replace(/\b(depends?) of\b/gi,'$1 on')],
+ [/\bi have (\d+|[a-z-]+) years( old)?\b(?! of| in| experience| working| ago)/i,'I am … years old','Idade usa “to be”: I am thirty years old (não “have”).','“I have 30 years”? Você não TEM anos, você É velho. I AM thirty, anta.',t=>t.replace(/\bi have (\d+|[a-z-]+) years( old)?\b(?! of| in| experience| working| ago)/gi,'I am $1 years old')],
+ [/\bi am (live|work|study|eat|go|love)\b/i,'I live / I work / …','Não use “am” junto do verbo principal: I live (não “I am live”).','“I am live”? Tá vivo ou o quê? Verbo SEM “am”: I LIVE.',t=>t.replace(/\bi am (live|work|study|eat|go|love)\b/gi,'I $1')],
+ [/\bdid(n'?t| not)? (went|saw|ate|came|had|made|took|goed)\b/i,'did + verbo no infinitivo (did you go? I did not go)','Depois de “did” o verbo volta ao infinitivo: “I didn’t go”.','Depois de DID o verbo fica no infinitivo, anta! Didn’t GO, não “went”.',t=>t.replace(/\b(did(?:n'?t| not)?) (went|saw|ate|came|had|made|took|goed)\b/gi,(m,a,v)=>a+' '+({went:'go',saw:'see',ate:'eat',came:'come',had:'have',made:'make',took:'take',goed:'go'})[v.toLowerCase()])],
+ [/\bpeople is\b/i,'people are','“People” é plural: people are.','“People is”? Gente é plural, porra: PEOPLE ARE.',t=>t.replace(/\bpeople is\b/gi,'people are')],
+ [/\bcan to\b/i,'I can + verbo','Depois de “can” não se usa “to”: I can go.','“Can to”? Tira esse TO daí, caralho.',t=>t.replace(/\bcan to\b/gi,'can')],
+ [/\bdiscuss about\b/i,'discuss …','“Discuss” já significa “discutir sobre”, sem “about”.','“Discuss about”? Já é “discutir sobre”, tira o ABOUT, cacete.',t=>t.replace(/\bdiscuss about\b/gi,'discuss')],
+ [/\bvery like\b(?!ly)/i,'I really like','Use “I really like” ou “I like … a lot”.','“I very like”? Que inglês é esse? I REALLY like, sua anta.',t=>t.replace(/\bvery like\b(?!ly)/gi,'really like')],
+ [/\bin (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,'on + dia da semana (on Monday)','Dias da semana usam “on”: on Monday.','“In Monday”? É ON Monday, porra.',t=>t.replace(/\bin (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,(m,d)=>'on '+Cap(d.toLowerCase()))],
+ [/\bi (has|does|goes)\b/i,'I have / I do / I go','Com “I” o verbo fica sem -s.','“I has”? Com I não tem S, anta! I HAVE.',t=>t.replace(/\bi has\b/gi,'I have').replace(/\bi does\b/gi,'I do').replace(/\bi goes\b/gi,'I go')],
+ [/\b(he|she|it) (am|are)\b|\b(they|we|you) (is|am)\b/i,'I am, he/she/it is, we/you/they are','Atenção ao verbo to be: I am, he/she/it is, we/you/they are.','Errou o TO BE? I am, he IS, they ARE. Decora, porra.',t=>t.replace(/\b(he|she|it) (am|are)\b/gi,'$1 is').replace(/\b(they|we|you) (is|am)\b/gi,'$1 are')],
+ [/\bmake (my |the )?homework\b/i,'do my homework','“Fazer a lição” é “do homework”, não “make”.','“Make homework”? É DO homework, caramba.',t=>t.replace(/\bmake (my |the )?homework\b/gi,'do $1homework')],
+ [/\b(like|love) of\b/i,'I like …','“Like” e “love” não levam “of”.','“Like of”? Tira o OF, seu burro.',t=>t.replace(/\b(like|love) of\b/gi,'$1')],
+ [/\bi am (\d+) years\b(?! old)/i,'I am … years old','Falta “old”: I am 30 years old.','Falta o OLD, anta! I am 30 years OLD.',t=>t.replace(/\bi am (\d+) years\b(?! old)/gi,'I am $1 years old')]
 ];
+const V3={have:'has',go:'goes',like:'likes',work:'works',want:'wants',live:'lives',eat:'eats',need:'needs',play:'plays',study:'studies',speak:'speaks',"don't":"doesn't",dont:"doesn't"};
+function fix3(t){return t.replace(/\b(?:(\w+)\s+)?(he|she|it)\s+(don'?t|have|go|like|work|want|live|eat|need|play|study|speak)\b/ig,(m,p,sub,v)=>{if(p&&AUX.includes(p.toLowerCase()))return m;return (p?p+' ':'')+sub+' '+(V3[v.toLowerCase()]||v)})}
+function autoFix(t){
+  let s=t;
+  RULES.forEach(r=>{if(r[4]&&(r[0] instanceof RegExp?r[0].test(s):r[0](s)))s=r[4](s)});
+  s=s.replace(/\s+/g,' ').trim().replace(/\bi\b/g,'I');
+  s=s.charAt(0).toUpperCase()+s.slice(1);
+  if(!/[.!?]$/.test(s))s+='.';
+  return s;
+}
+const CONN=/\b(because|but|so|however|although|since|while|when|if|also|then|and then)\b/i;
 function rcCheck(text,li){
   const t=text.trim(),words=t.split(/\s+/).filter(Boolean);
   const nPt=(t.match(PTW)||[]).length;
@@ -1529,89 +1686,163 @@ function rcCheck(text,li){
   const errs=pt?[]:RULES.filter(r=>r[0] instanceof RegExp?r[0].test(t):r[0](t)).slice(0,2);
   const short=words.length<MINW[li];
   const score=Math.max(0,100-errs.length*30-(short?25:0)-(pt?70:0));
-  return {score,errs,short,pt,words:words.length};
+  return {score,errs,short,pt,words:words.length,conn:CONN.test(t)};
 }
-Object.assign(MOODS.calma,{rcintro:'Vou te fazer perguntas variadas. Responda do seu jeito, e eu corrijo com carinho.',ask:['Vamos lá:','Me conta:','Próxima pergunta:'],short:['Boa, mas conta um pouquinho mais. Tenta uma frase completa.','Quase! Dá para explicar um pouco mais?'],ptw:['Opa, isso saiu em português. Sem problema, tenta de novo em inglês.']});
-Object.assign(MOODS.direta,{rcintro:'Pergunta, resposta, correção. Sem enrolação.',ask:['Pergunta:','Responda:','Próxima:'],short:['Curto demais. Faça uma frase completa.','Desenvolva a resposta.'],ptw:['Português. Responda em inglês.']});
-Object.assign(MOODS.durona,{rcintro:'Vou te perguntar umas merdas aleatórias e você responde em inglês. Errou, apanhou. Bora!',ask:['Escuta aqui, seu lerdo:','Lá vai uma fácil, tenta não errar:','Presta atenção, porra:','Agora vê se acerta, anta:'],short:['Isso é resposta? Fala mais, porra, ninguém cobra por palavra!','Uma palavra só, sua anta? Faz uma frase completa!','Preguiça, né? Desenvolve essa resposta, caralho!'],ptw:['Português, sua anta? Aqui é INGLÊS, porra!','Falou português de novo? Inglês, caramba!']});
+Object.assign(MOODS.calma,{rcintro:'Vamos conversar de verdade! Eu pergunto, você responde do seu jeito, e eu corrijo com carinho.',short:['Boa, mas conta um pouquinho mais. Tenta uma frase completa.','Quase! Dá para explicar um pouco mais?'],ptw:['Opa, isso saiu em português. Sem problema, tenta de novo em inglês.'],ins:'Olha como você está indo:'});
+Object.assign(MOODS.direta,{rcintro:'Conversa direta: pergunta, resposta, correção.',short:['Curto demais. Faça uma frase completa.','Desenvolva a resposta.'],ptw:['Português. Responda em inglês.'],ins:'Resumo direto:'});
+Object.assign(MOODS.durona,{rcintro:'Vou te perguntar umas merdas e você responde em inglês. Errou, apanhou. Bora!',short:['Isso é resposta? Fala mais, porra, ninguém cobra por palavra!','Uma palavra só, sua anta? Faz uma frase completa!','Preguiça, né? Desenvolve essa resposta, caralho!'],ptw:['Português, sua anta? Aqui é INGLÊS, porra!','Falou português de novo? Inglês, caramba!'],ins:'Vamos ver o tamanho do desastre:'});
+
+/* ---- conversa realista: assuntos, reações e perguntas encadeadas ---- */
+const TOPICS_RX=[['food',/coffee|breakfast|eat|food|cook|tea|hungry/i],['people',/brother|sister|family|friend|your name|old are you/i],['fun',/music|movie|series|social media|relax|skill|weekend|film/i],['travel',/travel|vacation|abroad|lottery|plans|city|weather|bag|where do you live|where are you from/i],['work',/job|work|stress|leader|business|colleague|tool|remote|schools|financial/i],['ideas',/technology|artificial|privacy|language|progress|freedom|meaningful|opinion|identity|economic|specialists|ambition|accountab|success/i]];
+const topicOf=en=>{for(const [t,r] of TOPICS_RX)if(r.test(en))return t;return 'life'};
+RQ.forEach(x=>{x[4]=topicOf(x[1])});
+const POS=/\b(love|like|enjoy|favorite|favourite|great|good|happy|fun|amazing|best|delicious|beautiful|excited)\b/i;
+const NEG=/\b(hate|dislike|bad|boring|tired|stress|stressed|difficult|hard|sad|terrible|worst|afraid|problem)\b/i;
+const STOP=['the','a','an','my','very','really','it','that','this','not','so','too','much','lot'];
+function objOf(t){
+  const m=t.match(/\b(?:like|love|enjoy|prefer|eat|drink|play|watch|visit|learn|cook|go to|live in|work as|work in|work at|am an?|have an?)\s+(?:the |a |an |my |some |to )?([a-zA-Z][a-zA-Z' -]{2,22}?)(?=[.,!?]|\s(?:and|but|because|so|with|in|on|at|every|when|too)\b|$)/i);
+  if(!m)return '';
+  const o=m[1].trim();return STOP.includes(o.toLowerCase())||o.split(/\s+/).length>3?'':o;
+}
+function reactTo(text){
+  const o=objOf(text),pos=POS.test(text),neg=NEG.test(text);
+  if(neg)return pick([['Oh, I am sorry to hear that.','Poxa, sinto muito.'],['I see. That can be hard.','Entendo. Pode ser difícil.'],['That sounds tough.','Parece difícil.']]);
+  if(o&&Math.random()<.75)return pick([[Cap(o)+'? Interesting!',o+'? Interessante!'],['Oh, '+o+'. Nice!','Ah, '+o+'. Legal!'],[Cap(o)+', I like that.',o+', gosto disso.']]);
+  if(pos)return pick([['That sounds great!','Parece ótimo!'],['Nice! I like that.','Legal! Gosto disso.'],['Wonderful!','Maravilhoso!']]);
+  return pick([['I see.','Entendi.'],['Okay, got it.','Certo, entendi.'],['Really? Cool.','Sério? Legal.'],['Alright!','Beleza!']]);
+}
+const REMARK={food:[['I am always hungry in the morning!','Eu sempre estou com fome de manhã!'],['I love good coffee.','Adoro um bom café.']],people:[['Family is really important.','Família é muito importante.'],['Good friends make life better.','Bons amigos melhoram a vida.']],fun:[['I could listen to music all day.','Eu ouviria música o dia todo.'],['Movies are a great way to learn English.','Filmes são ótimos para aprender inglês.']],travel:[['I would love to travel more.','Eu adoraria viajar mais.'],['Every city has its own story.','Toda cidade tem sua história.']],work:[['Work can be tiring, but it is rewarding.','Trabalhar cansa, mas compensa.'],['Good teams make a big difference.','Boas equipes fazem diferença.']],ideas:[['That is a big question.','Essa é uma pergunta grande.'],['People see this very differently.','As pessoas veem isso de formas bem diferentes.']],life:[['Life is full of surprises.','A vida é cheia de surpresas.']]};
+const SAME=[['By the way,','A propósito,'],['Also,','Além disso,'],['Speaking of that,','Falando nisso,']];
+const NEWT=[['Okay, new topic:','Certo, novo assunto:'],['Let us change the subject.','Vamos mudar de assunto.'],['Now, something different:','Agora, algo diferente:']];
+const PROBE_SHORT=[['Can you tell me more?','Pode me contar mais?'],['Why is that?','Por quê?'],['Could you give me an example?','Pode dar um exemplo?']];
+const PROBE_ERR=[['Try saying it again.','Tente falar de novo.'],['Once more, please.','Mais uma vez, por favor.']];
+const lf=s=>/^I\b/.test(s)?s:s.charAt(0).toLowerCase()+s.slice(1);
 
 let R=null;
+const SUGG_FOR=(res,g)=>S.sugg!=='errors'||g!=='ok'||res.short||res.pt;
 function rcStart(){
   if(S.api.url)return chat('','');
-  R={n:0,total:6,scores:[],fixes:[],tries:0,streak:0,used:[],phase:'ask',log:[],q:null,best:0,retry:false};
+  R={turns:0,max:8,scores:[],used:[],log:[],q:null,streak:0,best:0,tries:0,probed:false,phase:'wait',topic:'',topicN:0,last:'',errs:{},answered:0,ptN:0,shortN:0,sum:0};
   R.log.push(`<div class="b f">${esc(M().rcintro)}</div>`);
-  rcNext();
+  rcAsk(null);
 }
 function rcPickQ(){
-  const cur=curLevelIdx();
-  let li=cur;
-  if(R.streak>=2&&cur<5){li=cur+1;R.streak=0}
-  else if(cur>0&&Math.random()<.3)li=cur-1;
-  let pool=RQ.filter(x=>x[0]===li&&!R.used.includes(x[1]));
+  const cur=curLevelIdx();let li=cur;
+  if(R.streak>=2&&cur<5){li=cur+1;R.streak=0}else if(cur>0&&Math.random()<.25)li=cur-1;
+  const same=R.topic&&R.topicN<3;
+  let pool=RQ.filter(x=>x[0]===li&&!R.used.includes(x[1])&&(!same||x[4]===R.topic));
+  if(!pool.length&&same)pool=RQ.filter(x=>x[0]<=li&&x[4]===R.topic&&!R.used.includes(x[1]));
+  if(!pool.length)pool=RQ.filter(x=>x[0]===li&&!R.used.includes(x[1]));
   if(!pool.length)pool=RQ.filter(x=>x[0]<=li&&!R.used.includes(x[1]));
   if(!pool.length){R.used=[];pool=RQ.filter(x=>x[0]===li)}
-  const x=pick(pool);R.used.push(x[1]);
-  return {lv:x[0],en:x[1],pt:x[2],ex:x[3]};
+  const x=pick(pool),nt=!R.topic||x[4]!==R.topic;
+  R.topicN=nt?1:R.topicN+1;R.topic=x[4];R.used.push(x[1]);
+  return {lv:x[0],en:x[1],pt:x[2],ex:x[3],tp:x[4],newTopic:nt};
 }
-function rcNext(){
-  R.q=rcPickQ();R.tries=0;R.phase='ask';R.best=0;R.retry=false;
-  R.log.push(`<div class="b t"><div class="mut small">${esc(pick(M().ask))}</div><div>${esc(R.q.en)} <button class="sp" data-say="${esc(R.q.en)}">🔊</button></div><div class="tr ${S.pt==='en'?'hid':''}">${esc(R.q.pt)}</div></div>`);
-  rcDraw();speak(R.q.en);
+function sayLater(html,en,after){
+  R.phase='wait';rcDraw();
+  setTimeout(()=>{if(!R)return;R.log.push(html);R.phase='ask';rcDraw();if(en)speak(en);after&&after()},650+Math.random()*450);
+}
+function rcAsk(react){
+  R.q=rcPickQ();R.tries=0;R.probed=false;R.best=0;
+  const q=R.q,first=R.turns===0&&!react,tr=first?null:(q.newTopic?pick(NEWT):pick(SAME));
+  let en='',pt='',h='';
+  if(react){en+=react[0]+' ';pt+=react[1]+' ';h+=`<div>${esc(react[0])} <span class="mut small">${esc(react[1])}</span></div>`;
+    if(Math.random()<.3&&!q.newTopic){const rm=pick(REMARK[R.topic]||REMARK.life);en+=rm[0]+' ';h+=`<div style="margin-top:4px">${esc(rm[0])} <span class="mut small">${esc(rm[1])}</span></div>`}}
+  const qen=(tr?tr[0]+' '+lf(q.en):q.en),qpt=(tr?tr[1]+' '+lf(q.pt):q.pt);
+  en+=qen;
+  h+=`<div style="${react?'margin-top:6px;':''}">${esc(qen)} <button class="sp" data-say="${esc(qen)}">🔊</button></div><div class="tr ${S.pt==='en'?'hid':''}">${esc(qpt)}</div>`;
+  sayLater(`<div class="b t">${h}</div>`,en);
+}
+function rcDock(){
+  if(R.phase==='wait')return `<div class="cue">💬 ${esc(M().nome)} está digitando…</div>`;
+  if(R.phase==='ask')return `<div class="cue">🎯 Responda em inglês, do seu jeito. Pode falar ou digitar.</div>${micHint()}
+     <button class="mic" id="mic">🎙️ Falar</button>
+     <div class="send"><input class="tx" id="tx" placeholder="ou digite sua resposta…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div>
+     <div class="row"><button class="btn sec2 sm" id="hint">💡 Resposta sugerida</button><button class="btn sec2 sm" id="skip">Pular</button></div>`;
+  return `<div class="row">${R.retry?`<button class="btn sec2" id="rt">${R.shortLast?'Contar mais':'Tentar de novo'}</button>`:''}<button class="btn" id="nx">${R.turns+1>=R.max?'Ver resumo':'Continuar a conversa'}</button></div>`;
 }
 function rcDraw(){
   view='rc';
-  full(`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${R.n/R.total*100}%"></i></div><span class="chip">${M().ic} ${esc(M().nome)}</span></div>
-   <div class="chatlog" id="cl">${R.log.join('')}</div>
-   <div class="dock">${R.phase==='ask'?`
-     <div class="cue">🎯 Responda em inglês, do seu jeito. Pode falar ou digitar.</div>${micHint()}
-     <button class="mic" id="mic">🎙️ Falar</button>
-     <div class="send"><input class="tx" id="tx" placeholder="ou digite sua resposta…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div>
-     <div class="row"><button class="btn sec2 sm" id="hint">💡 Exemplo</button><button class="btn sec2 sm" id="skip">Pular</button></div>`
-     :`<div class="row">${R.retry?`<button class="btn sec2" id="rt">Tentar de novo</button>`:''}<button class="btn" id="nx">${R.n>=R.total-1?'Ver resultado':'Próxima pergunta'}</button></div>`}</div>`);
+  const typing=R.phase==='wait';
+  full(`<div class="q-top"><button class="x" id="x" aria-label="Encerrar">✕</button><div class="bar"><i style="width:${Math.min(100,R.turns/R.max*100)}%"></i></div><span class="chip">${M().ic} ${esc(M().nome)}</span></div>
+   <div class="chatlog" id="cl">${R.log.join('')}${typing?'<div class="b t typing"><span></span><span></span><span></span></div>':''}</div>
+   <div class="dock">${rcDock()}</div>`);
   const cl=$('#cl');if(cl&&cl.lastElementChild)cl.lastElementChild.scrollIntoView({block:'end'});
-  $('#x').onclick=()=>{if(confirm('Sair da conversa?')){stopListen();R=null;hoje()}};
+  $('#x').onclick=()=>{if(R.answered>0){if(confirm('Encerrar e ver o resumo?')){stopListen();rcEnd()}}else{stopListen();R=null;hoje()}};
   if(R.phase==='ask'){
     bindMic($('#mic'),alts=>rcAnswer(alts));
     const send=()=>{const v=$('#tx').value.trim();if(v)rcAnswer([v])};
     $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter')send()};
-    $('#hint').onclick=()=>{R.log.push(`<div class="b f">💡 Um exemplo: <b>${esc(R.q.ex)}</b> <button class="sp" data-say="${esc(R.q.ex)}">🔊</button></div>`);rcDraw()};
-    $('#skip').onclick=()=>{R.log.push(`<div class="b f">Um exemplo: <b>${esc(R.q.ex)}</b></div>`);R.best=0;R.phase='fb';R.retry=false;rcDraw()};
-  }else{
-    $('#nx').onclick=()=>{R.scores.push(R.best);R.n++;if(R.n>=R.total)rcEnd();else rcNext()};
-    const rt=$('#rt');if(rt)rt.onclick=()=>{R.tries++;R.phase='ask';rcDraw()};
+    $('#hint').onclick=()=>{R.log.push(`<div class="b f">💡 Uma resposta sugerida: <b>${esc(R.q.ex)}</b> <button class="sp" data-say="${esc(R.q.ex)}">🔊</button></div>`);rcDraw()};
+    $('#skip').onclick=()=>{R.log.push(`<div class="b f">Sem problema. Uma resposta possível: <b>${esc(R.q.ex)}</b></div>`);R.best=0;R.last='';R.retry=false;R.shortLast=false;R.phase='fb';rcDraw()};
+  }else if(R.phase==='fb'){
+    $('#nx').onclick=rcContinue;
+    const rt=$('#rt');if(rt)rt.onclick=rcRetry;
   }
 }
+function coachCard(res,text,q,fixed,g){
+  const m=M(),roast=moodKey()==='durona';
+  let h;
+  if(res.pt)h=esc(pick(m.ptw));
+  else if(res.errs.length)h=roast?esc(res.errs[0][3]):esc(pick(m[g]));
+  else if(res.short)h=esc(pick(m.short));
+  else h=esc(pick(m.ok));
+  res.errs.forEach(e=>{h+=`<div class="cor">✏️ ${esc(e[2])} → <b>${esc(e[1])}</b></div>`});
+  if(fixed)h+=`<div class="cor">✅ Sua frase corrigida: <b>${esc(fixed)}</b> <button class="sp" data-say="${esc(fixed)}">🔊</button></div>`;
+  if(SUGG_FOR(res,g))h+=`<div class="cor">💡 Resposta sugerida: <b>${esc(q.ex)}</b> <button class="sp" data-say="${esc(q.ex)}">🔊</button></div>`;
+  if(!res.pt&&!res.short&&res.words>=6&&!res.conn&&q.lv>=1)h+=`<div class="cor">🔗 Para soar mais natural, explique o motivo com “because” ou compare com “but”.</div>`;
+  return `<div class="b f">${h}</div>`;
+}
 function rcAnswer(alts){
-  const q=R.q,li=q.lv,roast=moodKey()==='durona';
-  let res=null,text=alts[0];
-  alts.forEach(a=>{const r=rcCheck(a,li);if(!res||r.score>res.score){res=r;text=a}});
+  const q=R.q;let res=null,text=alts[0];
+  alts.forEach(a=>{const r=rcCheck(a,q.lv);if(!res||r.score>res.score){res=r;text=a}});
   bump('speaks');
-  const g=res.score>=80?'ok':res.score>=50?'almost':'bad',m=M();
+  const g=res.score>=80?'ok':res.score>=50?'almost':'bad';
+  let fixed='';
+  if(!res.pt&&res.errs.length){const f=autoFix(text);if(norm(f)!==norm(text))fixed=f}
   R.log.push(`<div class="b u">${esc(text)}<div class="tr">${res.score}%</div></div>`);
-  let fb;
-  if(res.pt)fb=esc(pick(m.ptw));
-  else if(res.errs.length)fb=roast?esc(res.errs[0][3]):esc(pick(m[g]));
-  else if(res.short)fb=esc(pick(m.short));
-  else fb=esc(pick(m.ok));
-  res.errs.forEach(e=>{fb+=`<div class="cor">✏️ ${esc(e[2])} → <b>${esc(e[1])}</b></div>`;if(!R.fixes.includes(e[1]+'|'+e[2]))R.fixes.push(e[1]+'|'+e[2])});
-  if(res.short&&!res.pt)fb+=`<div class="cor">Um exemplo de resposta: <b>${esc(q.ex)}</b></div>`;
-  else if(g==='ok'&&li>=2)fb+=`<div class="cor">Para comparar: <b>${esc(q.ex)}</b></div>`;
-  R.log.push(`<div class="b t">${fb}</div>`);
-  R.best=Math.max(R.best,res.score);
-  if(g==='ok'){R.streak++;award(10+li*2)}else{R.streak=0;if(g==='almost')award(5)}
+  R.log.push(coachCard(res,text,q,fixed,g));
+  const pts=g==='ok'?1:g==='almost'?.5:0;
+  track('conv',pts,{q:q.en,a:text,s:res.score,f:res.errs.map(e=>e[1]),c:fixed});
+  res.errs.forEach(e=>{S.errs[e[1]]=(S.errs[e[1]]||0)+1;R.errs[e[1]]=(R.errs[e[1]]||0)+1});
+  S.flags.conv++;if(res.short)S.flags.short++,R.shortN++;if(res.pt)S.flags.pt++,R.ptN++;if(!res.pt&&!res.short&&res.words>=6&&!res.conn)S.flags.noconn++;
+  R.answered++;R.last=text;R.best=Math.max(R.best,res.score);R.sum+=pts;
+  if(g==='ok'){R.streak++;award(10+q.lv*2)}else{R.streak=0;if(g==='almost')award(5)}
+  R.shortLast=res.short&&!res.pt&&!res.errs.length;
   R.retry=g!=='ok'&&R.tries===0;R.phase='fb';
-  rcDraw();
+  save();rcDraw();
   if(g==='ok')speak(text);
 }
+function rcRetry(){
+  const p=R.shortLast?pick(PROBE_SHORT):pick(PROBE_ERR);
+  R.tries++;R.retry=false;
+  sayLater(`<div class="b t"><div>${esc(p[0])} <span class="mut small">${esc(p[1])}</span></div></div>`,p[0]);
+}
+function rcContinue(){
+  R.scores.push(R.best);R.turns++;
+  if(R.turns>=R.max)return rcEnd();
+  R.retry=false;
+  const rx=R.last?reactTo(R.last):null;
+  rcAsk(rx);
+}
 function rcEnd(){
-  const avg=R.scores.reduce((a,b)=>a+b,0)/R.scores.length,pct=Math.round(avg),m=M();
+  stopListen();
+  const n=R.scores.length||R.answered,avg=R.answered?Math.round(R.sum/R.answered*100):0,m=M();
   bump('convos');award(10);
-  const fixes=R.fixes.slice(0,5).map(f=>f.split('|'));
-  full(`<div class="res"><div class="big">${pct>=80?'🏆':pct>=60?'😐':'💩'}</div><h2>${pct}% na conversa</h2>
-    <p class="mut" style="max-width:420px;margin:10px auto">“${esc(pick(pct<60?m.low:m.fin))}”</p>
-    ${fixes.length?`<div class="card2" style="text-align:left"><b>Para revisar</b>${fixes.map(f=>`<div class="mut" style="margin-top:6px">✏️ ${esc(f[1])} → <b style="color:var(--txt)">${esc(f[0])}</b></div>`).join('')}</div>`:''}
-    <div class="row" style="margin-top:16px"><button class="btn sec2" id="h">Início</button><button class="btn" id="again">Mais uma rodada</button></div></div>`);
-  $('#h').onclick=hoje;$('#again').onclick=rcStart;
+  const top=Object.entries(R.errs).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const tips=[];
+  if(R.shortN>=2)tips.push('Suas respostas ficaram curtas. Tente frases completas com um motivo.');
+  if(R.ptN>=1)tips.push('Tente não misturar português: use as palavras que já sabe em inglês.');
+  if(!top.length&&!tips.length)tips.push('Sem erros comuns desta vez. Continue assim e suba de nível.');
+  full(`<div class="res"><div class="big">${avg>=80?'🏆':avg>=60?'😐':'💩'}</div><h2>${avg}% de acerto na conversa</h2>
+    <p class="mut" style="max-width:420px;margin:10px auto">“${esc(pick(avg<60?m.low:m.fin))}”</p>
+    <div class="stats"><span class="chip">${R.answered} respostas</span><span class="chip">${R.topicN?'':''}${[...new Set(R.used.map(u=>RQ.find(x=>x[1]===u)[4]))].length} assuntos</span></div>
+    ${(top.length||tips.length)?`<div class="card2" style="text-align:left"><b>Para melhorar</b>${top.map(([k,c])=>`<div class="mut" style="margin-top:6px">✏️ ${esc(RULES.find(r=>r[1]===k)?RULES.find(r=>r[1]===k)[2]:k)} <b style="color:var(--txt)">(${c}×)</b></div>`).join('')}${tips.map(t=>`<div class="mut" style="margin-top:6px">💡 ${esc(t)}</div>`).join('')}</div>`:''}
+    <div class="row" style="margin-top:16px"><button class="btn sec2" id="pg">Ver progresso</button><button class="btn" id="again">Mais uma rodada</button></div>
+    <button class="lnk" id="h" style="margin-top:10px">Voltar ao início</button></div>`);
+  $('#h').onclick=hoje;$('#again').onclick=rcStart;$('#pg').onclick=()=>go('prog');
+  R=null;
 }
 
 /* ============================================================
