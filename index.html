@@ -633,26 +633,54 @@ function speak(t,rate,force){
 }
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec=null;
+const SRERR={
+  'not-allowed':'O microfone está bloqueado. Libere nas permissões do navegador (ícone de cadeado) e tente de novo.',
+  'service-not-allowed':'O reconhecimento de voz está desligado neste aparelho. No iPhone: Ajustes → Teclado → Ativar Ditado.',
+  'audio-capture':'Não encontrei o microfone. Confira se ele está liberado.',
+  'network':'O reconhecimento de voz precisa de internet e não conseguiu conectar.',
+  'no-speech':'Não ouvi nada. Fale logo depois de tocar, perto do microfone.',
+  'language-not-supported':'Este navegador não reconhece inglês por voz.'
+};
+const envInfo=()=>({sr:!!SR,standalone:!!(matchMedia('(display-mode: standalone)').matches||navigator.standalone),ios:/iphone|ipad|ipod/i.test(navigator.userAgent),inapp:/FBAN|FBAV|Instagram|Line\/|Twitter|MicroMessenger|Claude/i.test(navigator.userAgent)});
 function stopListen(){try{rec&&rec.abort()}catch(e){}rec=null}
-function listen(onres,onend){
-  if(!SR){toast('Seu navegador não ouve voz. Use o Chrome ou o Edge, ou digite.');return false}
+function listen(onres,onend,onstate){
+  if(!SR){toast('Este navegador não ouve voz. Use o microfone do teclado para ditar, ou digite.');const t=$('#tx');if(t)t.focus();return false}
   if('speechSynthesis' in window)speechSynthesis.cancel();
   stopListen();
-  rec=new SR();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=3;rec.continuous=false;
-  let got=false;
-  rec.onresult=e=>{got=true;onres([...e.results[0]].map(x=>x.transcript))};
-  rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('Libere o microfone nas permissões do navegador.');else if(e.error==='no-speech')toast('Não ouvi nada. Tente de novo.')};
-  rec.onend=()=>onend&&onend(got);
-  try{rec.start()}catch(e){return false}
+  const r=new SR();rec=r;
+  r.lang='en-US';r.interimResults=true;r.maxAlternatives=3;r.continuous=false;
+  let finalAlts=null,interim='',err=null;
+  r.onresult=e=>{
+    const x=e.results[e.results.length-1];
+    if(x.isFinal)finalAlts=[...x].map(y=>y.transcript);
+    else{interim=x[0].transcript;onstate&&onstate(interim)}
+  };
+  r.onerror=e=>{err=e.error;if(e.error!=='aborted')toast(SRERR[e.error]||('Erro de voz: '+e.error))};
+  r.onend=()=>{
+    if(rec===r)rec=null;
+    if(finalAlts)onres(finalAlts);
+    else if(interim&&!err)onres([interim]);
+    else if(!err)toast('Não captei sua voz. Tente de novo, mais perto do microfone.');
+    onend&&onend(!!(finalAlts||interim));
+  };
+  setTimeout(()=>{if(rec!==r)return;try{r.start()}catch(e){toast('Não consegui iniciar o microfone. Tente de novo.');onend&&onend(false)}},250);
   return true;
 }
 function bindMic(btn,cb){
   btn.onclick=()=>{
-    if(btn.classList.contains('on')){stopListen();return}
-    const label=btn.textContent;
-    const ok=listen(alts=>cb(alts),()=>{btn.classList.remove('on');btn.textContent=label});
-    if(ok){btn.classList.add('on');if(!btn.dataset.keep)btn.textContent='🎙️ Ouvindo… toque para parar'}
+    if(btn.classList.contains('on')){stopListen();btn.classList.remove('on');return}
+    const label=btn.textContent,lab=$('#ml'),labH=lab?lab.innerHTML:'';
+    const ok=listen(alts=>cb(alts),()=>{btn.classList.remove('on');btn.textContent=label;if(lab)lab.innerHTML=labH},t=>{
+      if(lab)lab.innerHTML='<b>ouvindo…</b><br>'+esc(t);else if(!btn.dataset.keep)btn.textContent='🎙️ '+t.slice(0,28);
+    });
+    if(ok){btn.classList.add('on');if(lab)lab.innerHTML='<b>ouvindo… fale agora</b><br>toque de novo para parar';else if(!btn.dataset.keep)btn.textContent='🎙️ Ouvindo… fale agora'}
   };
+}
+function micHint(){
+  const e=envInfo();
+  if(!e.sr)return '<p class="mut small" style="text-align:center;margin:0 0 6px">🎤 Este navegador não ouve voz. Toque no microfone do <b>teclado</b> para ditar em inglês.</p>';
+  if(e.ios&&e.standalone)return '<p class="mut small" style="text-align:center;margin:0 0 6px">🎤 No app da tela inicial do iPhone a voz pode falhar. Se não captar, use o microfone do <b>teclado</b> ou abra no Safari.</p>';
+  return '';
 }
 
 /* ============================================================
@@ -870,6 +898,7 @@ function warnHtml(){
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   let h='';
   if(!STG_OK)h+=`<div class="tip" style="background:var(--badbg);border-color:var(--bad)"><b>⚠️ Este navegador não está salvando seus dados</b><br>Isso acontece em aba anônima ou dentro de outros apps. Abra o endereço no Safari ou no Chrome normal.</div>`;
+  if(ios&&standalone&&!S.micTipDone)h+=`<div class="tip"><b>🎤 Voz no iPhone</b><br>No app da tela inicial, o reconhecimento de voz pode falhar. Se não captar, use o microfone do <b>teclado</b> para ditar, ou abra o endereço no Safari. Em <b>Perfil → Testar microfone</b> você vê o que está acontecendo.<button class="lnk" id="micx">Entendi</button></div>`;
   if(ios&&!standalone&&!S.iosTipDone)h+=`<div class="tip"><b>📌 Para não perder seu progresso</b><br>Toque em <b>Compartilhar → Adicionar à Tela de Início</b> e abra sempre pelo ícone.<button class="lnk" id="iosx">Entendi</button></div>`;
   return h;
 }
@@ -896,6 +925,7 @@ function hoje(){
   <div class="card2" style="padding:4px 14px">${MISSIONS.map(x=>{const v=Math.min(S.daily[x.k]||0,x.n),d=v>=x.n;return `<div class="mission ${d?'d':''}"><span>${d?'✅':'🎯'}</span><span style="min-width:150px">${x.t}</span><div class="bar ${d?'g':''}"><i style="width:${v/x.n*100}%"></i></div><span>${v}/${x.n}</span></div>`}).join('')}</div>`,'hoje');
   bindMoodSwitch(()=>hoje());
   const inst=$('#inst');if(inst)inst.onclick=async()=>{deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;hoje()};
+  const mx=$('#micx');if(mx)mx.onclick=()=>{S.micTipDone=true;save();hoje()};
   const ix=$('#iosx');if(ix)ix.onclick=()=>{S.iosTipDone=true;save();hoje()};
   const tx=$('#tipx');if(tx)tx.onclick=()=>{S.tipDone=true;save();hoje()};
   $('#rc').onclick=rcStart;
@@ -1007,7 +1037,7 @@ function nextQ(){
     choose('Como se diz em inglês?',`<h2 class="word">${esc(w.pt)}</h2>`,w.en,shuffle([w.en,...others('en')]));
   }else if(q.type==='listen'){
     choose('Ouça e escolha o que você ouviu',`<button class="btn sec2" id="sp" style="max-width:220px">🔊 Ouvir de novo</button>`,w.en,shuffle([w.en,...others('en')]));
-    $('#sp').onclick=()=>speak(w.en,0,1);speak(w.en);
+    $('#sp').onclick=()=>speak(w.en,0,1);speak(w.en,0,1);
   }else{
     full(top+`<div class="prompt">Escreva em inglês</div><h2 class="word">${esc(w.pt)}</h2>
       <input class="type" id="inp" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="digite aqui…"><button class="btn" id="go">Verificar</button>`);
@@ -1128,7 +1158,7 @@ function dlgDraw(){
   full(`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${D.i/d.turns.length*100}%"></i></div><span class="chip">${d.lv}</span></div>
    <div class="chatlog" id="cl">${D.log.join('')}</div>
    <div class="dock">${D.phase==='ask'?`
-     <div class="cue">🎯 ${esc(t.cue)}</div>
+     <div class="cue">🎯 ${esc(t.cue)}</div>${micHint()}
      <button class="mic" id="mic">🎙️ Falar</button>
      <div class="send"><input class="tx" id="tx" placeholder="ou digite aqui…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div>
      <div class="row"><button class="btn sec2 sm" id="hint">💡 Dica</button><button class="btn sec2 sm" id="skip">Pular</button></div>`
@@ -1303,6 +1333,12 @@ function perfil(){
     <input class="tx" id="at" type="password" placeholder="Senha do servidor" value="${esc(S.api.token)}" style="margin-bottom:8px;font-size:15px">
     <div class="row"><button class="btn sec2 sm" id="sv">Salvar</button><button class="btn sec2 sm" id="ts">Testar conexão</button></div>
   </div>
+  <div class="sec">Microfone</div>
+  <div class="set">
+    <p class="mut small" style="margin:0 0 8px">Toque em testar e fale uma frase em inglês. Você vê abaixo o que o navegador entendeu e, se houver erro, o motivo.</p>
+    <button class="btn sec2 sm" id="mt">🎙️ Testar microfone</button>
+    <div id="mtr" class="note small" style="margin-top:10px">${(()=>{const e=envInfo();return `Voz: <b>${e.sr?'disponível':'indisponível neste navegador'}</b> · Modo: <b>${e.standalone?'app instalado':'navegador'}</b>${e.inapp?' · <b>navegador dentro de outro app</b>':''}`})()}</div>
+  </div>
   <div class="sec">Salvar meu progresso</div>
   <div class="set">
     <p class="mut small" style="margin:0 0 8px">Seus dados ficam salvos neste aparelho. Para levar para outro navegador ou aparelho, copie o link de acesso e abra nele.</p>
@@ -1310,6 +1346,13 @@ function perfil(){
     <small class="mut" style="margin-top:8px">Salvamento: ${STG_OK?'funcionando':'bloqueado neste navegador'} · ${(matchMedia('(display-mode: standalone)').matches||navigator.standalone)?'app instalado':'aberto no navegador'}</small>
   </div>
   <button class="btn bad" id="reset" style="margin-top:8px">Apagar todo o progresso</button>`,'perfil');
+  $('#mt').onclick=()=>{
+    const box=$('#mtr'),btn=$('#mt');
+    if(btn.classList.contains('on')){stopListen();btn.classList.remove('on');return}
+    box.textContent='Iniciando o microfone…';
+    const ok=listen(alts=>{box.innerHTML='✅ Entendi: <b>'+esc(alts[0])+'</b>'},()=>{btn.classList.remove('on')},t=>{box.innerHTML='Ouvindo… <b>'+esc(t)+'</b>'});
+    if(ok){btn.classList.add('on');box.textContent='Ouvindo… fale agora'}else box.textContent='Este navegador não tem reconhecimento de voz. Use o microfone do teclado para ditar.';
+  };
   $('#bk').onclick=async()=>{
     const link=location.origin+location.pathname+'#r='+encodeURIComponent(encodeS());
     try{await navigator.clipboard.writeText(link);toast('Link copiado')}
@@ -1412,22 +1455,28 @@ q(5,'To what degree should a company be held accountable for the social impact o
 q(5,'How do you reconcile ambition with contentment?','Como você concilia ambição e contentamento?','By pursuing growth for its own sake rather than as proof that I am enough.');
 q(5,'Is progress inevitable, or is it a choice we keep remaking?','O progresso é inevitável, ou uma escolha que refazemos o tempo todo?','It is never inevitable: every gain has been defended, lost and defended again.');
 
-const MINW=[2,4,6,9,12,15];
-const PTW=/\b(eu|você|voce|não|nao|sim|obrigado|porque|também|tambem|muito|está|esta|bom|olá|ola|tchau|meu|minha|com|para|uma|uns|gosto|moro|trabalho|mas|que|é)\b/i;
+const MINW=[1,3,5,8,11,14];
+const PTW=/\b(eu|você|voce|não|nao|sim|obrigado|porque|também|tambem|muito|está|esta|bom|olá|ola|tchau|meu|minha|com|para|uma|uns|gosto|moro|trabalho|mas|que)\b/ig;
+const AUX=['did','does','do','can','could','will','would','should','must','may','might','to','let','make','makes','made'];
+function thirdPerson(t){
+  const re=/\b(?:(\w+)\s+)?(he|she|it)\s+(don'?t|have|go|like|work|want|live|eat|need|play|study|speak)\b/ig;let m;
+  while((m=re.exec(t))){if(!(m[1]&&AUX.includes(m[1].toLowerCase())))return true}
+  return false;
+}
 const RULES=[
  [/\bgoed\b/i,'went','O passado de “go” é “went”, não “goed”.','“Goed”? Que porra de palavra é essa? O passado de go é WENT, sua anta.'],
  [/\bam agree\b|\bi'?m agree\b/i,'I agree','“Concordar” é “I agree”, sem o “am”.','“I am agree”? Concordar não leva “am”, cacete. É I AGREE.'],
- [/\b(he|she|it) (don'?t|have|go|like|work|want|live|eat|need|play|study|speak)\b/i,'he/she/it + verbo com -s (he works, she likes, he does not)','Com he/she/it o verbo ganha -s (he works) e a negativa usa “doesn’t”.','“He work”? Falta o S, sua anta! He WORKS. Terceira pessoa, pelo amor de Deus.'],
+ [thirdPerson,'he/she/it + verbo com -s (he works, she likes, he does not)','Com he/she/it o verbo ganha -s (he works) e a negativa usa “doesn’t”.','“He work”? Falta o S, sua anta! He WORKS. Terceira pessoa, pelo amor de Deus.'],
  [/\bi (no|not) (like|have|want|know|speak|understand|eat|drink)\b/i,'I do not … (I do not like)','Para negar com verbos, use “I don’t” (I don’t like).','“I no like”? Isso é inglês de Tarzan. É I DON’T, porra.'],
  [/\bmore (better|bigger|easier|good)\b/i,'better','O comparativo de “good” é “better”, sem “more”.','“More better”? Dois comparativos juntos, seu burro! Só BETTER.'],
  [/\bdepends? of\b/i,'depends on','“Depende de” é “depends on”.','“Depends of”? É DEPENDS ON, caramba. Preposição errada de novo.'],
- [/\bi have (\d+|[a-z-]+) years( old)?\b/i,'I am … years old','Idade usa “to be”: I am thirty years old (não “have”).','“I have 30 years”? Você não TEM anos, você É velho. I AM thirty, anta.'],
- [/\bi am (live|work|study|eat|go|like|love)\b/i,'I live / I work / …','Não use “am” junto do verbo principal: I live (não “I am live”).','“I am live”? Tá vivo ou o quê? Verbo SEM “am”: I LIVE.'],
+ [/\bi have (\d+|[a-z-]+) years( old)?\b(?! of| in| experience| working| ago)/i,'I am … years old','Idade usa “to be”: I am thirty years old (não “have”).','“I have 30 years”? Você não TEM anos, você É velho. I AM thirty, anta.'],
+ [/\bi am (live|work|study|eat|go|love)\b/i,'I live / I work / …','Não use “am” junto do verbo principal: I live (não “I am live”).','“I am live”? Tá vivo ou o quê? Verbo SEM “am”: I LIVE.'],
  [/\bdid(n'?t| not)? (went|saw|ate|came|had|made|took|goed)\b/i,'did + verbo no infinitivo (did you go? I did not go)','Depois de “did” o verbo volta ao infinitivo: “I didn’t go”.','Depois de DID o verbo fica no infinitivo, anta! Didn’t GO, não “went”.'],
  [/\bpeople is\b/i,'people are','“People” é plural: people are.','“People is”? Gente é plural, porra: PEOPLE ARE.'],
  [/\bcan to\b/i,'I can + verbo','Depois de “can” não se usa “to”: I can go.','“Can to”? Tira esse TO daí, caralho.'],
  [/\bdiscuss about\b/i,'discuss …','“Discuss” já significa “discutir sobre”, sem “about”.','“Discuss about”? Já é “discutir sobre”, tira o ABOUT, cacete.'],
- [/\bvery like\b/i,'I really like','Use “I really like” ou “I like … a lot”.','“I very like”? Que inglês é esse? I REALLY like, sua anta.'],
+ [/\bvery like\b(?!ly)/i,'I really like','Use “I really like” ou “I like … a lot”.','“I very like”? Que inglês é esse? I REALLY like, sua anta.'],
  [/\bin (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,'on + dia da semana (on Monday)','Dias da semana usam “on”: on Monday.','“In Monday”? É ON Monday, porra.'],
  [/\bi (has|does|goes)\b/i,'I have / I do / I go','Com “I” o verbo fica sem -s.','“I has”? Com I não tem S, anta! I HAVE.'],
  [/\b(he|she|it) (am|are)\b|\b(they|we|you) (is|am)\b/i,'I am, he/she/it is, we/you/they are','Atenção ao verbo to be: I am, he/she/it is, we/you/they are.','Errou o TO BE? I am, he IS, they ARE. Decora, porra.'],
@@ -1437,8 +1486,9 @@ const RULES=[
 ];
 function rcCheck(text,li){
   const t=text.trim(),words=t.split(/\s+/).filter(Boolean);
-  const pt=PTW.test(t)||/[ãõçáéíóú]/i.test(t);
-  const errs=pt?[]:RULES.filter(r=>r[0].test(t)).slice(0,2);
+  const nPt=(t.match(PTW)||[]).length;
+  const pt=nPt>=2||(nPt>=1&&words.length<=3);
+  const errs=pt?[]:RULES.filter(r=>r[0] instanceof RegExp?r[0].test(t):r[0](t)).slice(0,2);
   const short=words.length<MINW[li];
   const score=Math.max(0,100-errs.length*30-(short?25:0)-(pt?70:0));
   return {score,errs,short,pt,words:words.length};
@@ -1475,7 +1525,7 @@ function rcDraw(){
   full(`<div class="q-top"><button class="x" id="x">✕</button><div class="bar"><i style="width:${R.n/R.total*100}%"></i></div><span class="chip">${M().ic} ${esc(M().nome)}</span></div>
    <div class="chatlog" id="cl">${R.log.join('')}</div>
    <div class="dock">${R.phase==='ask'?`
-     <div class="cue">🎯 Responda em inglês, do seu jeito. Pode falar ou digitar.</div>
+     <div class="cue">🎯 Responda em inglês, do seu jeito. Pode falar ou digitar.</div>${micHint()}
      <button class="mic" id="mic">🎙️ Falar</button>
      <div class="send"><input class="tx" id="tx" placeholder="ou digite sua resposta…" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="sd">Enviar</button></div>
      <div class="row"><button class="btn sec2 sm" id="hint">💡 Exemplo</button><button class="btn sec2 sm" id="skip">Pular</button></div>`
