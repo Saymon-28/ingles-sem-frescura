@@ -820,19 +820,25 @@ function obStep(){
   const i=OB.i,nx=()=>{OB.i++;obStep()},st={v:0};
   S.obi=i;save();
   if(i===0){
-    st.v=S.voiceMode==='drill'?1:0;
-    obShell(asking('Antes de começar: quer que eu fale em voz alta?','calma')+optsHtml(VOICE_OPTS,st.v),()=>{S.voiceMode=st.v===1?'drill':'all';save();nx()});
-    bindOpts(false,st);
+    st.v=(S.voiceSel&&S.voiceSel.length)?S.voiceSel.slice():[S.voiceMode==='drill'?1:0];
+    obShell(asking('Antes de começar: quer que eu fale em voz alta? Marque quantas quiser.','calma')+optsHtml(VOICE_OPTS,st.v,true),()=>{
+      if(!st.v.length)return toast('Escolha pelo menos uma opção.');
+      S.voiceSel=st.v.slice();S.voiceMode=st.v.includes(0)?'all':'drill';save();nx()});
+    bindOpts(true,st);
   }else if(i===1){
     obShell(asking('Como posso te chamar?','calma')+`<input class="tx" id="nm" placeholder="Seu nome ou apelido" maxlength="20" value="${esc(S.name)}" autocomplete="off">`,()=>{S.name=$('#nm').value.trim();save();nx()});
   }else if(i===2){
-    st.v=Math.max(0,LV.indexOf(S.level));
-    obShell(asking('Quanto você já entende de inglês?','calma')+optsHtml(LEVEL_OPTS,st.v),()=>{S.level=LV[st.v];save();nx()});
-    bindOpts(false,st);
+    st.v=(S.levelSel&&S.levelSel.length)?S.levelSel.slice():[Math.max(0,LV.indexOf(S.level))];
+    obShell(asking('Quanto você já entende de inglês? Marque quantas quiser.','calma')+optsHtml(LEVEL_OPTS,st.v,true),()=>{
+      if(!st.v.length)return toast('Escolha pelo menos uma opção.');
+      S.levelSel=st.v.slice();S.level=LV[Math.max(...st.v)];save();nx()});
+    bindOpts(true,st);
   }else if(i===3){
-    st.v=S.goal||0;
-    obShell(asking('O que te faz querer falar inglês?','calma')+optsHtml(GOAL_OPTS,st.v),()=>{S.goal=st.v;save();nx()});
-    bindOpts(false,st);
+    st.v=(S.goalSel&&S.goalSel.length)?S.goalSel.slice():[S.goal||0];
+    obShell(asking('O que te faz querer falar inglês? Marque quantas quiser.','calma')+optsHtml(GOAL_OPTS,st.v,true),()=>{
+      if(!st.v.length)return toast('Escolha pelo menos uma opção.');
+      S.goalSel=st.v.slice();S.goal=st.v[0];save();nx()});
+    bindOpts(true,st);
   }else if(i===4){
     let k=Math.max(0,TERMS.findIndex(t=>t.m===S.months));if(k<0)k=1;
     const draw=()=>{
@@ -842,13 +848,17 @@ function obStep(){
     obShell(asking('Em quanto tempo você quer conversar com naturalidade?','calma')+`<div class="bigterm" id="bt"></div><div class="term" id="tb"></div><div class="note" id="nt"></div>`,()=>{S.months=TERMS[k].m;save();nx()});
     draw();$('#tb').onclick=e=>{const b=e.target.closest('button');if(!b)return;k=+b.dataset.j;draw()};
   }else if(i===5){
-    st.v=S.weekly||0;
-    obShell(asking('Hoje, quanto tempo por semana você fala inglês em voz alta?','calma')+optsHtml(WEEK_OPTS,st.v),()=>{S.weekly=st.v;save();nx()});
-    bindOpts(false,st);
+    st.v=(S.weekSel&&S.weekSel.length)?S.weekSel.slice():[S.weekly||0];
+    obShell(asking('Hoje, quanto tempo por semana você fala inglês em voz alta? Marque quantas quiser.','calma')+optsHtml(WEEK_OPTS,st.v,true),()=>{
+      if(!st.v.length)return toast('Escolha pelo menos uma opção.');
+      S.weekSel=st.v.slice();S.weekly=Math.max(...st.v);save();nx()});
+    bindOpts(true,st);
   }else if(i===6){
-    st.v=Math.max(0,MIN_OPTS.findIndex(o=>o.v===S.minutes));if(st.v<0)st.v=1;
-    obShell(asking('Quantos minutos por dia cabem na sua rotina?','calma')+optsHtml(MIN_OPTS,st.v),()=>{S.minutes=MIN_OPTS[st.v].v;save();nx()});
-    bindOpts(false,st);
+    {let d=MIN_OPTS.findIndex(o=>o.v===S.minutes);if(d<0)d=1;st.v=(S.minSel&&S.minSel.length)?S.minSel.slice():[d]}
+    obShell(asking('Quantos minutos por dia cabem na sua rotina? Marque quantas quiser.','calma')+optsHtml(MIN_OPTS,st.v,true),()=>{
+      if(!st.v.length)return toast('Escolha pelo menos uma opção.');
+      S.minSel=st.v.slice();S.minutes=MIN_OPTS[Math.max(...st.v)].v;save();nx()});
+    bindOpts(true,st);
   }else if(i===7){
     obShell(`<div class="ask">${mascot('calma',92)}<div class="bub">Com ${S.minutes} minutos por dia, até <b>${esc(planDate())}</b> você já conversa solto.</div></div>${planChart()}<p class="mut" style="text-align:center">Uma estimativa, não uma promessa: o resultado depende de você aparecer todo dia.</p>`,nx);
   }else if(i===8){

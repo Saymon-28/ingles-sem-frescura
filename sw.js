@@ -1,4 +1,4 @@
-const CACHE = 'isf-v9';
+const CACHE = 'isf-v10';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
