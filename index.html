@@ -298,6 +298,14 @@ input.type:focus,input.tx:focus{border-color:var(--acc2);box-shadow:0 0 0 3px rg
   #app{height:min(880px,calc(var(--app-h,100dvh) - 32px));border:1px solid var(--ubl);box-shadow:0 0 0 1px rgba(143,125,255,.15),0 30px 100px rgba(70,60,255,.35),0 0 80px rgba(34,211,238,.12);background-color:rgba(7,10,20,.55)}
   :root[data-theme="light"] #app{background-color:rgba(255,255,255,.4)}
 }
+/* tela cheia real: acompanha a área visível (iPhone, app instalado, barras do navegador, teclado) */
+#app{position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);width:100%;height:auto;max-width:480px;margin:0 auto;padding-top:env(safe-area-inset-top)}
+.tabs{margin:0 10px calc(10px + env(safe-area-inset-bottom))}
+.wrap.nt,.obf{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.obf{padding-top:10px}
+@media (min-width:700px){
+  #app{position:relative;top:auto;left:auto;right:auto;bottom:auto;padding-top:0;height:min(880px,calc(100vh - 32px));margin:0 auto}
+}
 </style>
 </head>
 <body>
@@ -554,8 +562,13 @@ function load(raw){
   if(!S.daily||S.daily.d!==today())S.daily={d:today(),words:0,speaks:0,convos:0,lesson:false,claimed:[]};
   if(!MOODS[S.mood])S.mood='calma';
 }
-function fitH(){const h=(window.visualViewport&&visualViewport.height)||innerHeight;document.documentElement.style.setProperty('--app-h',Math.round(h)+'px')}
-fitH();addEventListener('resize',fitH);addEventListener('orientationchange',fitH);if(window.visualViewport)visualViewport.addEventListener('resize',fitH);
+function fitH(){
+  const vv=window.visualViewport;let kb=0;
+  if(vv){kb=Math.max(0,Math.round(innerHeight-(vv.height+vv.offsetTop)));if(kb<80)kb=0}
+  document.documentElement.style.setProperty('--kb',kb+'px');
+}
+fitH();addEventListener('resize',fitH);addEventListener('orientationchange',fitH);
+if(window.visualViewport){visualViewport.addEventListener('resize',fitH);visualViewport.addEventListener('scroll',fitH)}
 let idbT=null,STG_OK=true;
 function idbOpen(cb){try{const r=indexedDB.open('isf',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onsuccess=()=>cb(r.result);r.onerror=()=>cb(null)}catch(e){cb(null)}}
 function idbGet(){return new Promise(res=>idbOpen(db=>{if(!db)return res(null);try{const g=db.transaction('k').objectStore('k').get('s');g.onsuccess=()=>res(g.result||null);g.onerror=()=>res(null)}catch(e){res(null)}}))}
